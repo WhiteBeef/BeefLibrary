@@ -5,6 +5,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.whitebeef.beeflibrary.commands.AbstractCommand;
+import ru.whitebeef.beeflibrary.handlers.PluginHandler;
 import ru.whitebeef.beeflibrary.inventory.deprecated.OldInventoryGUIHandler;
 import ru.whitebeef.beeflibrary.inventory.deprecated.OldInventoryGUIManager;
 
@@ -25,7 +26,7 @@ public final class BeefLibrary extends JavaPlugin {
         reloadConfig();
 
         tryHookPlaceholderAPI();
-        registerListeners(this, new OldInventoryGUIHandler());
+        registerListeners(this, new PluginHandler(), new OldInventoryGUIHandler());
         new OldInventoryGUIManager();
     }
 
