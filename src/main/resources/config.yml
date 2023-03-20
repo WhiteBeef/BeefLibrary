@@ -1,0 +1,4 @@
+messages:
+  only_for_players: "&cТолько для игроков!"
+  no_args: "&cНедостаточно аргументов!"
+  no_permissions: "&cНедостаточно прав!"

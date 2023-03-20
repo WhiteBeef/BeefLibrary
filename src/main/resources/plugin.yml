@@ -1,0 +1,7 @@
+name: BeefLibrary
+version: '${project.version}'
+main: ru.whitebeef.beeflibrary.BeefLibrary
+api-version: 1.19
+authors: [ _WhiteBeef_ ]
+description: Lib plugin to whitebeef's plugins
+website: t.me/whitebeef
