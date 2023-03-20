@@ -8,9 +8,9 @@ import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.defaults.BukkitCommand;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import ru.whitebeef.beeflibrary.BeefLibrary;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -31,8 +31,8 @@ public abstract class AbstractCommand extends BukkitCommand {
 
     private static final List<AbstractCommand> registeredCommands = new ArrayList<>();
 
-    public static void unregisterAllCommands() {
-        registeredCommands.forEach(AbstractCommand::unregister);
+    public static void unregisterAllCommands(Plugin plugin) {
+        registeredCommands.forEach(abstractCommand -> abstractCommand.unregister(plugin));
     }
 
     public static Builder builder(String name, Class<? extends AbstractCommand> clazz) {
@@ -206,7 +206,7 @@ public abstract class AbstractCommand extends BukkitCommand {
     }
 
 
-    public void register() {
+    public void register(Plugin plugin) {
         loadTree(this, this);
 
         try {
@@ -214,7 +214,7 @@ public abstract class AbstractCommand extends BukkitCommand {
 
             bukkitCommandMap.setAccessible(true);
             CommandMap commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
-            commandMap.register(BeefLibrary.getInstance().getName().toLowerCase(), this);
+            commandMap.register(plugin.getName().toLowerCase(), this);
             registeredCommands.add(this);
         } catch (Exception e) {
             e.printStackTrace();
@@ -222,17 +222,17 @@ public abstract class AbstractCommand extends BukkitCommand {
 
     }
 
-    public void unregister() {
+    public void unregister(Plugin plugin) {
         try {
             final Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
 
             bukkitCommandMap.setAccessible(true);
             CommandMap commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
             HashMap<String, Command> knownCommands = (HashMap<String, Command>) commandMap.getKnownCommands();
-            knownCommands.remove(BeefLibrary.getInstance().getName().toLowerCase() + ":" + getName());
+            knownCommands.remove(plugin.getName().toLowerCase() + ":" + getName());
             knownCommands.remove(getName());
             for (String alias : getAliases()) {
-                knownCommands.remove(BeefLibrary.getInstance().getName().toLowerCase() + ":" + alias);
+                knownCommands.remove(plugin.getName().toLowerCase() + ":" + alias);
                 knownCommands.remove(alias);
             }
             super.unregister(commandMap);

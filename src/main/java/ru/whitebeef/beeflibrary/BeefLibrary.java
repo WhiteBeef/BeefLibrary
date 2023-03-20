@@ -5,6 +5,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.whitebeef.beeflibrary.commands.AbstractCommand;
+import ru.whitebeef.beeflibrary.inventory.deprecated.OldInventoryGUIHandler;
+import ru.whitebeef.beeflibrary.inventory.deprecated.OldInventoryGUIManager;
 
 public final class BeefLibrary extends JavaPlugin {
 
@@ -21,11 +23,15 @@ public final class BeefLibrary extends JavaPlugin {
 
         saveDefaultConfig();
         reloadConfig();
+
+        tryHookPlaceholderAPI();
+        registerListeners(this, new OldInventoryGUIHandler());
+        new OldInventoryGUIManager();
     }
 
     @Override
     public void onDisable() {
-        AbstractCommand.unregisterAllCommands();
+        AbstractCommand.unregisterAllCommands(this);
     }
 
     public void tryHookPlaceholderAPI() {
@@ -40,6 +46,10 @@ public final class BeefLibrary extends JavaPlugin {
         getLogger().info("PlaceholderAPI unhooked!");
     }
 
+    public void registerCommand(AbstractCommand abstractCommand) {
+        abstractCommand.register(this);
+    }
+
     public boolean isPlaceholderAPIHooked() {
         return placeholderAPIHooked;
     }
@@ -49,4 +59,5 @@ public final class BeefLibrary extends JavaPlugin {
             Bukkit.getPluginManager().registerEvents(listener, plugin);
         }
     }
+
 }

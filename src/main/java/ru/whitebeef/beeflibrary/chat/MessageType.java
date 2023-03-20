@@ -13,6 +13,9 @@ public final class MessageType {
 
     public static void registerTypes(Plugin instance) {
         FileConfiguration cfg = instance.getConfig();
+        if (!cfg.isConfigurationSection("messages")) {
+            return;
+        }
         String prefix = instance.getName().toLowerCase() + ".";
         for (String type : cfg.getConfigurationSection("messages").getKeys(false)) {
             messages.put(prefix + type, cfg.getString("messages." + type));
@@ -22,6 +25,9 @@ public final class MessageType {
     public static void unregisterTypes(Plugin instance) {
         FileConfiguration cfg = instance.getConfig();
         String prefix = instance.getName().toLowerCase() + ".";
+        if (!cfg.isConfigurationSection("messages")) {
+            return;
+        }
         for (String type : cfg.getConfigurationSection("messages").getKeys(false)) {
             messages.remove(prefix + type);
         }

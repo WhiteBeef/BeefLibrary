@@ -1,6 +1,7 @@
 package ru.whitebeef.beeflibrary.commands;
 
 import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.Plugin;
 import ru.whitebeef.beeflibrary.BeefLibrary;
 
 import java.util.List;
@@ -19,7 +20,7 @@ public abstract class SubCommand extends AbstractCommand {
     }
 
     @Override
-    public void register() {
+    public void register(Plugin plugin) {
         BeefLibrary.getInstance().getLogger().severe("SubCommands can't be registered! You try to register " + getClass().getName());
     }
 
