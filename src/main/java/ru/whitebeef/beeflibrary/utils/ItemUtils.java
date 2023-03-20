@@ -1,6 +1,7 @@
 package ru.whitebeef.beeflibrary.utils;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -42,22 +43,19 @@ public class ItemUtils {
         });
     }
 
-    @Nullable
+    @NotNull
     public static ItemStack parseItemStack(ConfigurationSection section) {
-        if ("AIR".equalsIgnoreCase(section.getString("material"))) {
-            return null;
-        }
         ItemStack itemStack = new ItemStack(Material.getMaterial(section.getString("material").toUpperCase()));
 
         ItemMeta meta = itemStack.getItemMeta();
 
         if (section.isString("name")) {
-            meta.displayName(MessageFormatter.of(section.getString("name")).toComponent(null));
+            meta.displayName(MessageFormatter.of(section.getString("name")).toComponent().decoration(TextDecoration.ITALIC, false));
         }
 
         if (section.isList("lore")) {
             List<Component> lore = new ArrayList<>();
-            section.getStringList("lore").forEach(str -> lore.add(MessageFormatter.of(str).toComponent(null)));
+            section.getStringList("lore").forEach(str -> lore.add(MessageFormatter.of(str).toComponent()));
             meta.lore(lore);
         }
 

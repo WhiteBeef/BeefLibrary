@@ -201,6 +201,7 @@ public abstract class AbstractCommand extends BukkitCommand {
         if (current.getPermission().isEmpty()) {
             current.setPermission(parent.getPermission() + "." + current.getName());
         }
+        current.onlyForPlayers = parent.onlyForPlayers;
 
         current.getSubCommands().forEach(command -> loadTree(current, command));
     }
