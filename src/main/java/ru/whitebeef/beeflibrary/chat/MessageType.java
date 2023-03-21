@@ -22,15 +22,10 @@ public final class MessageType {
         }
     }
 
-    public static void unregisterTypesSection(Plugin instance, String path) {
-        FileConfiguration cfg = instance.getConfig();
+    public static void unregisterTypesSection(Plugin instance) {
         String prefix = instance.getName().toLowerCase() + ".";
-        if (!cfg.isConfigurationSection(path)) {
-            return;
-        }
-        for (String type : cfg.getConfigurationSection(path).getKeys(false)) {
-            messages.remove(prefix + type);
-        }
+        messages.entrySet()
+                .removeIf(entry -> entry.getKey().startsWith(prefix));
     }
 
     public static void registerType(Plugin instance, String path) {
@@ -40,6 +35,22 @@ public final class MessageType {
         }
 
         messages.put(instance.getName().toLowerCase() + "." + path, cfg.getString(path));
+    }
+
+    public static void registerType(String path, String value) {
+        if (messages.containsKey(path)) {
+            throw new IllegalArgumentException("Path '" + path + "' is already registered!");
+        }
+
+        messages.put(path, value);
+    }
+
+    public static void unregisterType(String path) {
+        if (messages.containsKey(path)) {
+            return;
+        }
+
+        messages.remove(path);
     }
 
     public static void unregisterType(Plugin instance, String path) {

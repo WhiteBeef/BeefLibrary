@@ -16,7 +16,7 @@ public class PluginHandler implements Listener {
 
     @EventHandler
     public void onPluginDisable(PluginDisableEvent event) {
-        MessageType.unregisterTypesSection(event.getPlugin(), "messages");
+        MessageType.unregisterTypesSection(event.getPlugin());
         AbstractCommand.unregisterAllCommands(event.getPlugin());
     }
 }
