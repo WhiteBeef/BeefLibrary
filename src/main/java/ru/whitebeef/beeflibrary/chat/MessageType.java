@@ -62,6 +62,24 @@ public final class MessageType {
         messages.remove(instance.getName().toLowerCase() + "." + path, cfg.getString(path));
     }
 
+    public static void registerTypes(Plugin instance, String... paths) {
+        for (String path : paths) {
+            registerType(instance, path);
+        }
+    }
+
+    public static void unregisterTypes(String... paths) {
+        for (String path : paths) {
+            unregisterType(path);
+        }
+    }
+
+    public static void unregisterTypes(Plugin instance, String... paths) {
+        for (String path : paths) {
+            unregisterType(instance, path);
+        }
+    }
+
     @NotNull
     public static String of(@NotNull String type) {
         return messages.getOrDefault(type, "");
