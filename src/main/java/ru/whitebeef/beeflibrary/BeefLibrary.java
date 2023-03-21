@@ -1,5 +1,6 @@
 package ru.whitebeef.beeflibrary;
 
+import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
@@ -49,6 +50,15 @@ public final class BeefLibrary extends JavaPlugin {
 
     public void registerCommand(AbstractCommand abstractCommand) {
         abstractCommand.register(this);
+    }
+
+    public boolean registerPlaceholders(PlaceholderExpansion... expansions) {
+        if (isPlaceholderAPIHooked()) {
+            for (PlaceholderExpansion expansion : expansions) {
+                expansion.register();
+            }
+        }
+        return isPlaceholderAPIHooked();
     }
 
     public boolean isPlaceholderAPIHooked() {
