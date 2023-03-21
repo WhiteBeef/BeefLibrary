@@ -12,7 +12,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.Nullable;
 import ru.whitebeef.beeflibrary.chat.MessageFormatter;
-import ru.whitebeef.beeflibrary.inventory.ClickHandler;
 import ru.whitebeef.beeflibrary.utils.Color;
 import ru.whitebeef.beeflibrary.utils.ItemUtils;
 
