@@ -40,13 +40,13 @@ public class InventoryUtils {
 
     private static final Method sendPacket;
 
-    static
-    {
+    static {
         String[] parts = Bukkit.class.getName().split(".");
-        if(parts.length == 4)
+        if (parts.length == 4) {
             version = "";
-        else
+        } else {
             version = "." + parts[4];
+        }
         Field tiinv = null;
         Field ttitle = null;
         Field thandle = null;
@@ -54,8 +54,7 @@ public class InventoryUtils {
         Constructor topenWindowPacket = null;
         Field tplayerConnection = null;
         Method tsendPacket;
-        try
-        {
+        try {
             tiinv = getVersionedClass("org.bukkit.craftbukkit.inventory.CraftInventory").getDeclaredField("inventory");
             tiinv.setAccessible(true);
             ttitle = getVersionedClass("org.bukkit.craftbukkit.inventory.CraftInventoryCustom$MinecraftInventory").getDeclaredField("title");
@@ -72,8 +71,7 @@ public class InventoryUtils {
             tplayerConnection.setAccessible(true);
             tsendPacket = getVersionedClass("net.minecraft.server.PlayerConnection").getDeclaredMethod("sendPacket", topenWindowPacket.getDeclaringClass().getSuperclass());
             tsendPacket.setAccessible(true);
-        }
-        catch(Exception ex) // Any would do, regardless
+        } catch (Exception ex) // Any would do, regardless
         {
             throw new ExceptionInInitializerError(ex);
         }
@@ -86,25 +84,25 @@ public class InventoryUtils {
         sendPacket = tsendPacket;
     }
 
-    private static Class getVersionedClass(String className) throws ClassNotFoundException
-    {
-        if(className.startsWith("net.minecraft.server"))
-            if(version.isEmpty())
+    private static Class getVersionedClass(String className) throws ClassNotFoundException {
+        if (className.startsWith("net.minecraft.server")) {
+            if (version.isEmpty()) {
                 return Class.forName(className);
-            else
+            } else {
                 return Class.forName(String.format("net.minecraft.server%s.%s", version, className.substring("net.minecraft.server.".length())));
-        else if(className.startsWith("org.bukkit.craftbukkit"))
-            if(version.isEmpty())
+            }
+        } else if (className.startsWith("org.bukkit.craftbukkit")) {
+            if (version.isEmpty()) {
                 return Class.forName(className);
-            else
+            } else {
                 return Class.forName(String.format("net.minecraft.server%s.%s", version, className.substring("org.bukkit.craftbukkit.".length())));
+            }
+        }
         throw new IllegalArgumentException("Not a versioned class!");
     }
 
-    public static void renameInventory(Player player, Inventory inventory, String title)
-    {
-        try
-        {
+    public static void renameInventory(Player player, Inventory inventory, String title) {
+        try {
             Object iinv = iinvField.get(inventory);
             titleField.set(iinv, title);
             Object handle = handleField.get(player);
@@ -112,9 +110,7 @@ public class InventoryUtils {
             Object playerConnection = playerConnectionField.get(handle);
             Object packet = openWindowPacketConstructor.newInstance(containerCounter, 0, title, inventory.getSize(), false);
             sendPacket.invoke(playerConnection, packet);
-        }
-        catch(Exception ex)
-        {
+        } catch (Exception ex) {
             // Shh, I don't care about you <3
         }
     }
