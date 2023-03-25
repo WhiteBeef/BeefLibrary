@@ -50,7 +50,7 @@ public class InventoryGUI implements IInventoryGUI {
 
     public InventoryGUI(@NotNull String namespace, int size, @NotNull Component name, @NotNull Map<Integer,
             @NotNull BiPredicate<@NotNull Player, @Nullable ItemStack>> predicates,
-                        @NotNull Map<Integer, List<@NotNull String>> commands, @NotNull ItemStack[] @NotNull items,
+                        @NotNull Map<Integer, List<@NotNull String>> commands, @NotNull ItemStack[] items,
                         @NotNull Set<@NotNull Integer> closedSlots, @NotNull List<@NotNull String> commandsOnClose) {
         this.namespace = namespace;
         this.size = size;
@@ -60,6 +60,7 @@ public class InventoryGUI implements IInventoryGUI {
         this.closedSlots = closedSlots;
         this.commandsOnClose = commandsOnClose;
         inventory = Bukkit.createInventory(null, size, name);
+        inventory.setStorageContents(items);
     }
 
     @Override
