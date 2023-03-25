@@ -3,11 +3,11 @@ package ru.whitebeef.beeflibrary;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.whitebeef.beeflibrary.commands.AbstractCommand;
 import ru.whitebeef.beeflibrary.handlers.PluginHandler;
+import ru.whitebeef.beeflibrary.inventory.InventoryGUIManager;
 import ru.whitebeef.beeflibrary.inventory.deprecated.OldInventoryGUIHandler;
 import ru.whitebeef.beeflibrary.inventory.deprecated.OldInventoryGUIManager;
 
@@ -29,6 +29,7 @@ public final class BeefLibrary extends JavaPlugin {
         tryHookPlaceholderAPI();
         registerListeners(this, new PluginHandler(), new OldInventoryGUIHandler());
         new OldInventoryGUIManager();
+        new InventoryGUIManager();
     }
 
     @Override

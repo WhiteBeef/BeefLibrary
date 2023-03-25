@@ -2,8 +2,10 @@ package ru.whitebeef.beeflibrary.inventory;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,6 +48,8 @@ public interface IInventoryGUI extends ClickableInventory, RenameableInventory {
 
     void close(Player player);
 
+    void onClose(InventoryCloseEvent event);
+
     void close();
 
     @NotNull Set<Integer> getClosedSlots();
@@ -86,6 +90,10 @@ public interface IInventoryGUI extends ClickableInventory, RenameableInventory {
                 size = 54;
             }
             this.size = size;
+        }
+
+        public String getNamespace() {
+            return namespace;
         }
 
         public Builder setItem(int slot, @NotNull ItemStack item) {
@@ -146,6 +154,10 @@ public interface IInventoryGUI extends ClickableInventory, RenameableInventory {
         public Builder addCloseCommands(String... command) {
             commandsOnClose.addAll(List.of(command));
             return this;
+        }
+
+        public void register(Plugin plugin) {
+            InventoryGUIManager.getInstance().registerTemplate(plugin, this);
         }
 
         public abstract IInventoryGUI build();

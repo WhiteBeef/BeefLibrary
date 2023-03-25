@@ -4,11 +4,13 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import ru.whitebeef.beeflibrary.inventory.CustomInventoryGUICommand;
 import ru.whitebeef.beeflibrary.inventory.IInventoryGUI;
 
 import java.util.ArrayList;
@@ -32,13 +34,13 @@ public class InventoryGUI implements IInventoryGUI {
     private Set<Integer> closedSlots;
 
     @Override
-    public void onClick(int slot, InventoryClickEvent event) {
-
+    public void onClick(InventoryClickEvent event) {
+        //TODO
     }
 
     @Override
-    public void onDrag(int slot, InventoryDragEvent event) {
-
+    public void onDrag(InventoryDragEvent event) {
+        //TODO
     }
 
     @Override
@@ -137,7 +139,12 @@ public class InventoryGUI implements IInventoryGUI {
 
     @Override
     public void close(Player player) {
-        player.closeInventory();
+        player.closeInventory(InventoryCloseEvent.Reason.PLUGIN);
+    }
+
+    @Override
+    public void onClose(InventoryCloseEvent event) {
+        commandsOnClose.forEach(command -> CustomInventoryGUICommand.getInstance().runCommand(this, (Player) event.getPlayer(), command));
     }
 
     @Override

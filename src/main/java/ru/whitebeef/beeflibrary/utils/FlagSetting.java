@@ -1,5 +1,7 @@
 package ru.whitebeef.beeflibrary.utils;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -15,11 +17,11 @@ public class FlagSetting implements Cloneable {
     private Map<String, Integer> settings = new HashMap<>();
     private BitSet bitSet = new BitSet();
 
-    private FlagSetting(Set<String> settings) {
+    private FlagSetting(@NotNull Set<String> settings) {
         settings.forEach(setting -> this.settings.put(setting, this.settings.size()));
     }
 
-    public void setSetting(String namespace, boolean value) {
+    public void setSetting(@NotNull String namespace, boolean value) {
         if (!settings.containsKey(namespace)) {
             throw new IllegalArgumentException("Namespace '" + namespace + "' is not registered!");
         }
@@ -52,11 +54,12 @@ public class FlagSetting implements Cloneable {
     public static class Builder {
         private final Set<String> settings = new LinkedHashSet<>();
 
-        public Builder addSetting(String namespace) {
+        public Builder addSetting(@NotNull String namespace) {
             settings.add(namespace);
             return this;
         }
 
+        @NotNull
         public FlagSetting build() {
             return new FlagSetting(settings);
         }

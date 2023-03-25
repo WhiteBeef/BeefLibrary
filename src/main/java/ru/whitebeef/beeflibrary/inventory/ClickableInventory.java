@@ -5,8 +5,8 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 
 public interface ClickableInventory {
 
-    void onClick(int slot, InventoryClickEvent event);
+    void onClick(InventoryClickEvent event);
 
-    void onDrag(int slot, InventoryDragEvent event);
+    void onDrag(InventoryDragEvent event);
 
 }
