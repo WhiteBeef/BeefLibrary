@@ -5,3 +5,5 @@ api-version: 1.19
 authors: [ _WhiteBeef_ ]
 description: Lib plugin to whitebeef's plugins
 website: t.me/whitebeef
+softdepend:
+  - PlaceholderAPI
