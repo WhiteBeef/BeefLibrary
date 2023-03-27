@@ -23,16 +23,14 @@ import java.util.regex.Pattern;
 
 public class PAPIUtils {
     private static final TextReplacementConfig REMOVE_PLACEHOLDERS = TextReplacementConfig.builder().match("%(?!message\\b)[A-z0-9_]+%").replacement("").build();
-    private static final TextReplacementConfig PLAYER_NAME_COMPONENT_PLACEHOLDERS = TextReplacementConfig.builder().match("%player-name-component%").replacement("%player_name%").build();
-
     private static final Map<String, Function<CommandSender, Component>> registeredPlaceholders = new HashMap<>();
 
     /**
      * Плейсхолдер, который будет зарегистрирован будет иметь формат %pluginname_placeholder%
      *
-     * @param plugin      Плагин, который будет регистрировать плейсхолдер, null - глобальный плейсхолдер
+     * @param plugin      Плагин будет регистрировать плейсхолдер, null - глобальный плейсхолдер
      * @param placeholder Плейсхолдер, без %%
-     * @param function    Функцуия, в которую будет пердаваться CommandSender, для коготорого будет заименяться плейсхолдер, возвращаться должна компонента
+     * @param function    Функцуия, в которую будет пердаваться CommandSender, для которого будет заменяться плейсхолдер, возвращаться должна компонента
      */
     public static void registerPlaceholder(@Nullable Plugin plugin, @NotNull String placeholder, @NotNull Function<CommandSender, Component> function) {
         String toRegister;
@@ -64,10 +62,10 @@ public class PAPIUtils {
         if (sender == null) {
             return component;
         }
+        component = replaceCustomPlaceHolders(sender, component);
 
         if (!(sender instanceof Player player)) {
             component = GsonComponentSerializer.gson().deserialize(line)
-                    .replaceText(PLAYER_NAME_COMPONENT_PLACEHOLDERS)
                     .replaceText(TextReplacementConfig.builder()
                             .match("%player_name%")
                             .replacement(sender.name()).build()
@@ -76,8 +74,7 @@ public class PAPIUtils {
             return component;
         }
 
-        component = replaceCustomPlaceHolders(sender, component);
-        return BeefLibrary.getInstance().isPlaceholderAPIHooked() ?GsonComponentSerializer.gson().deserialize(PlaceholderAPI.setPlaceholders(player, line)) : component;
+        return BeefLibrary.getInstance().isPlaceholderAPIHooked() ? GsonComponentSerializer.gson().deserialize(PlaceholderAPI.setPlaceholders(player, line)) : component;
     }
 
     public static String setPlaceholders(CommandSender sender, String text) {
