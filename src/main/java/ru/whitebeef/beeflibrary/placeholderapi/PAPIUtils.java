@@ -4,6 +4,7 @@ import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -78,8 +79,9 @@ public class PAPIUtils {
     }
 
     public static String setPlaceholders(CommandSender sender, String text) {
+
         if (!(sender instanceof Player player)) {
-            return text.replaceAll("%player-name-component%", "%player_name%").replaceAll("%player_name%", sender.getName()).replaceAll("%(?!message\\b)[A-z0-9_]+%", "");
+            return replaceCustomPlaceHolders(sender, text).replaceAll("%player_name%", sender.getName()).replaceAll("%(?!message\\b)[A-z0-9_]+%", "");
         }
         return BeefLibrary.getInstance().isPlaceholderAPIHooked() ? PlaceholderAPI.setPlaceholders(player, text) : text;
     }
@@ -106,5 +108,27 @@ public class PAPIUtils {
         }
 
         return component;
+    }
+
+    private static String replaceCustomPlaceHolders(CommandSender commandSender, String text) {
+        Set<String> toReplace = new HashSet<>();
+
+        Pattern pattern = Pattern.compile("%([A-z0-9]+)_([A-z0-9]+)%");
+
+        Matcher matcher = pattern.matcher(text);
+        int index = 0;
+        while (matcher.find(index)) {
+            String placeholder = text.substring(matcher.start(), matcher.end());
+            if (isRegisteredPlaceholder(placeholder)) {
+                toReplace.add(placeholder);
+            }
+            index = matcher.end() + 1;
+        }
+
+        for (@RegExp String placeholder : toReplace) {
+            text = text.replaceAll(placeholder, LegacyComponentSerializer.legacySection().serialize(getRegisteredPlaceHolder(placeholder).apply(commandSender)));
+        }
+
+        return text;
     }
 }
