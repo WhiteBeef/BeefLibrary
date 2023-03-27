@@ -1,21 +1,27 @@
 package ru.whitebeef.beeflibrary.utils;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextReplacementConfig;
-import org.bukkit.command.CommandSender;
-import ru.whitebeef.beeflibrary.chat.MessageFormatter;
+import net.kyori.adventure.text.TextComponent;
 
 public class ComponentUtils {
-    public static Component replaceTellPlaceholders(Component component, CommandSender sender, CommandSender recipient) {
-        component = component
-                .replaceText(TextReplacementConfig.builder()
-                        .match("%(sender|recipient){1}\\-([A-z\\-\\_]+)%")
-                        .replacement((matchResult, builder) -> {
-                            MessageFormatter formatter = MessageFormatter.of("%" + matchResult.group(2) + "%");
-                            return matchResult.group(1).equals("sender") ? formatter.toComponent(sender) : formatter.toComponent(recipient);
-                        })
-                        .build());
-        return component;
+
+    public static boolean containsText(Component component, String text) {
+        if (!(component instanceof TextComponent textComponent)) {
+            return false;
+        }
+
+        boolean contains = textComponent.content().contains(text);
+        if (contains) {
+            return true;
+        }
+        for (Component child : component.children()) {
+            if (containsText(child, text)) {
+                contains = true;
+                break;
+            }
+        }
+
+        return contains;
     }
 
 }
