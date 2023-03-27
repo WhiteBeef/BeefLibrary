@@ -15,8 +15,8 @@ public abstract class SubCommand extends AbstractCommand {
                       BiConsumer<CommandSender, String[]> onCommand,
                       BiFunction<CommandSender, String[], List<String>> onTabComplete,
                       Map<String, AbstractCommand> subCommands,
-                      List<Alias> aliases) {
-        super(name, permission, description, usageMessage, onlyForPlayers, onCommand, onTabComplete, subCommands, aliases);
+                      List<Alias> aliases, int minArgsCount) {
+        super(name, permission, description, usageMessage, onlyForPlayers, onCommand, onTabComplete, subCommands, aliases, minArgsCount);
     }
 
     @Override

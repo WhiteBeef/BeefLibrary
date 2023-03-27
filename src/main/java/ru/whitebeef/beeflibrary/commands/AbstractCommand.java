@@ -44,13 +44,14 @@ public abstract class AbstractCommand extends BukkitCommand {
     private final BiConsumer<CommandSender, String[]> onCommand;
     private final BiFunction<CommandSender, String[], List<String>> onTabComplete;
     private final List<Alias> aliases;
+    private final int minArgsCount;
     private boolean onlyForPlayers;
 
     protected AbstractCommand(@NotNull String name, @Nullable String permission, @Nullable String description, @Nullable String usageMessage, boolean onlyForPlayers,
                               BiConsumer<CommandSender, String[]> onCommand,
                               BiFunction<CommandSender, String[], List<String>> onTabComplete,
                               Map<String, AbstractCommand> subCommands,
-                              List<Alias> aliases) {
+                              List<Alias> aliases, int minArgsCount) {
         super(name, Objects.requireNonNullElseGet(description, String::new),
                 Objects.requireNonNullElseGet(usageMessage, String::new),
                 aliases.stream().map(Alias::getName).collect(Collectors.toList()));
@@ -61,6 +62,7 @@ public abstract class AbstractCommand extends BukkitCommand {
         this.onlyForPlayers = onlyForPlayers;
         this.onTabComplete = onTabComplete;
         this.subCommands = subCommands;
+        this.minArgsCount = minArgsCount;
     }
 
     public AbstractCommand addSubCommand(AbstractCommand abstractCommand) {
@@ -128,6 +130,11 @@ public abstract class AbstractCommand extends BukkitCommand {
         AbstractCommand currentCommand = pair.right();
 
         args = Arrays.stream(args).skip(pair.left()).toArray(String[]::new);
+
+        if (args.length < minArgsCount) {
+            StandardConsumers.NO_ARGS.getConsumer().accept(sender, args);
+            return true;
+        }
 
         if (!currentCommand.testPermissionSilent(sender)) {
             StandardConsumers.NO_PERMISSION.getConsumer().accept(sender, args);
@@ -245,7 +252,6 @@ public abstract class AbstractCommand extends BukkitCommand {
     public static class Builder {
         private final Class<? extends AbstractCommand> clazz;
         private final String name;
-
         private final Map<String, AbstractCommand> subCommands = new HashMap<>();
         private final List<Alias> aliases = new ArrayList<>();
         private BiConsumer<CommandSender, String[]> onCommand = null;
@@ -254,7 +260,7 @@ public abstract class AbstractCommand extends BukkitCommand {
         private String description = "";
         private String usageMessage = "";
         private boolean onlyForPlayers = false;
-
+        private int minArgsCount = 0;
 
         public Builder(String name, Class<? extends AbstractCommand> clazz) {
             this.name = name;
@@ -306,10 +312,15 @@ public abstract class AbstractCommand extends BukkitCommand {
             return this;
         }
 
+        public Builder setMinArgsCount(int minArgsCount) {
+            this.minArgsCount = minArgsCount;
+            return this;
+        }
+
         public AbstractCommand build() {
             try {
-                return clazz.getDeclaredConstructor(String.class, String.class, String.class, String.class, boolean.class, BiConsumer.class, BiFunction.class, Map.class, List.class)
-                        .newInstance(name, permission, description, usageMessage, onlyForPlayers, onCommand, onTabComplete, subCommands, aliases);
+                return clazz.getDeclaredConstructor(String.class, String.class, String.class, String.class, boolean.class, BiConsumer.class, BiFunction.class, Map.class, List.class, int.class)
+                        .newInstance(name, permission, description, usageMessage, onlyForPlayers, onCommand, onTabComplete, subCommands, aliases, minArgsCount);
             } catch (Exception e) {
                 throw new RuntimeException();
             }

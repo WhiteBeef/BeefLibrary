@@ -12,7 +12,7 @@ import java.util.function.BiFunction;
 public final class SimpleCommand extends AbstractCommand {
 
     public static SimpleCommand newInstance(String name, String permission) {
-        return new SimpleCommand(name, permission, "", "", false,null, null, new HashMap<>(), Collections.emptyList());
+        return new SimpleCommand(name, permission, "", "", false, null, null, new HashMap<>(), Collections.emptyList(), 0);
     }
 
     public static SimpleCommand newInstance(String name) {
@@ -23,8 +23,8 @@ public final class SimpleCommand extends AbstractCommand {
                          BiConsumer<CommandSender, String[]> onCommand,
                          BiFunction<CommandSender, String[], List<String>> onTabComplete,
                          Map<String, AbstractCommand> subCommands,
-                         List<Alias> aliases) {
-        super(name, permission, description, usageMessage, onlyForPlayers,onCommand, onTabComplete, subCommands, aliases);
+                         List<Alias> aliases, int minArgsCount) {
+        super(name, permission, description, usageMessage, onlyForPlayers, onCommand, onTabComplete, subCommands, aliases, minArgsCount);
     }
 
 }
