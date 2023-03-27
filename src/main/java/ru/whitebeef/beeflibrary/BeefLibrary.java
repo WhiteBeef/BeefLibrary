@@ -1,7 +1,9 @@
 package ru.whitebeef.beeflibrary;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -10,6 +12,9 @@ import ru.whitebeef.beeflibrary.handlers.PluginHandler;
 import ru.whitebeef.beeflibrary.inventory.InventoryGUIManager;
 import ru.whitebeef.beeflibrary.inventory.deprecated.OldInventoryGUIHandler;
 import ru.whitebeef.beeflibrary.inventory.deprecated.OldInventoryGUIManager;
+import ru.whitebeef.beeflibrary.placeholderapi.PAPIUtils;
+
+import java.util.function.Function;
 
 public final class BeefLibrary extends JavaPlugin {
 
@@ -70,6 +75,10 @@ public final class BeefLibrary extends JavaPlugin {
         for (Listener listener : listeners) {
             Bukkit.getPluginManager().registerEvents(listener, plugin);
         }
+    }
+
+    public static void registerPlaceholder(Plugin plugin, String placeholder, Function<CommandSender, Component> function) {
+        PAPIUtils.registerPlaceholder(plugin, placeholder, function);
     }
 
 }

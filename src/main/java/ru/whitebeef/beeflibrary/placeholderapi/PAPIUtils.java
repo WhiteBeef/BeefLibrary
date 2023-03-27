@@ -91,7 +91,7 @@ public class PAPIUtils {
 
         Set<String> toReplace = new HashSet<>();
 
-        Pattern pattern = Pattern.compile("%([A-z0-9]+)_([A-z0-9]+)%");
+        Pattern pattern = Pattern.compile("%([A-z0-9]+)_([A-z0-9_-]+)%");
 
         Matcher matcher = pattern.matcher(gson);
         int index = 0;
@@ -113,7 +113,7 @@ public class PAPIUtils {
     private static String replaceCustomPlaceHolders(CommandSender commandSender, String text) {
         Set<String> toReplace = new HashSet<>();
 
-        Pattern pattern = Pattern.compile("%([A-z0-9]+)_([A-z0-9]+)%");
+        Pattern pattern = Pattern.compile("%([A-z0-9]+)_([A-z0-9_-]+)%");
 
         Matcher matcher = pattern.matcher(text);
         int index = 0;
