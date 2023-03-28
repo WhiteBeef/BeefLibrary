@@ -58,24 +58,23 @@ public class PAPIUtils {
         return registeredPlaceholders.getOrDefault(placeholder, commandSender -> PlainTextComponentSerializer.plainText().deserialize(placeholder));
     }
 
-    public static Component setPlaceholders(@Nullable CommandSender sender, @NotNull Component component) {
+    public static Component setPlaceholders(@Nullable CommandSender commandSender, @NotNull Component component) {
         String line = GsonComponentSerializer.gson().serialize(component);
-        if (sender == null) {
+        if (commandSender == null) {
             return component;
         }
-        component = replaceCustomPlaceHolders(sender, component);
-
-        if (!(sender instanceof Player player)) {
+        component = replaceCustomPlaceHolders(commandSender, component);
+        if (!(commandSender instanceof Player player)) {
             component = GsonComponentSerializer.gson().deserialize(line)
                     .replaceText(TextReplacementConfig.builder()
                             .match("%player_name%")
-                            .replacement(sender.name()).build()
+                            .replacement(commandSender.name()).build()
                     );
             component = component.replaceText(REMOVE_PLACEHOLDERS);
             return component;
         }
 
-        return BeefLibrary.getInstance().isPlaceholderAPIHooked() ? GsonComponentSerializer.gson().deserialize(PlaceholderAPI.setPlaceholders(player, line)) : component;
+        return BeefLibrary.getInstance().isPlaceholderAPIHooked() ? GsonComponentSerializer.gson().deserialize(PlaceholderAPI.setPlaceholders(player, GsonComponentSerializer.gson().serialize(component))) : component;
     }
 
     public static String setPlaceholders(CommandSender sender, String text) {
@@ -104,7 +103,11 @@ public class PAPIUtils {
         }
 
         for (@RegExp String placeholder : toReplace) {
-            component = component.replaceText(TextReplacementConfig.builder().match(placeholder).replacement(getRegisteredPlaceHolder(placeholder).apply(commandSender)).build());
+            component = component
+                    .replaceText(TextReplacementConfig.builder()
+                            .matchLiteral(placeholder)
+                            .replacement(getRegisteredPlaceHolder(placeholder).apply(commandSender))
+                            .build());
         }
 
         return component;
