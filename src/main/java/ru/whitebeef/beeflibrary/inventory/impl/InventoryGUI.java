@@ -14,6 +14,7 @@ import ru.whitebeef.beeflibrary.inventory.CustomInventoryGUICommand;
 import ru.whitebeef.beeflibrary.inventory.IInventoryGUI;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,12 +36,33 @@ public class InventoryGUI implements IInventoryGUI {
 
     @Override
     public void onClick(InventoryClickEvent event) {
-        //TODO
+        if (event.isShiftClick()) {
+            event.setCancelled(true);
+            return;
+        }
+        if (event.getClickedInventory() != event.getInventory()) {
+            return;
+        }
+        int slot = event.getSlot();
+
+        if (isSlotClosed(slot)) {
+            event.setCancelled(true);
+        }
+
+        Player player = (Player) event.getWhoClicked();
+        CustomInventoryGUICommand customCommandManager = CustomInventoryGUICommand.getInstance();
+        for (String command : commands.getOrDefault(slot, Collections.emptyList())) {
+            customCommandManager.runCommand(this, player, command);
+        }
     }
 
     @Override
     public void onDrag(InventoryDragEvent event) {
-        //TODO
+        event.getNewItems().forEach((slot, item) -> {
+            if (isSlotClosed(slot)) {
+                event.setCancelled(true);
+            }
+        });
     }
 
     @Override

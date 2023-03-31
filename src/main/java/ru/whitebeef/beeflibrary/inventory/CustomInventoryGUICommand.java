@@ -1,8 +1,10 @@
 package ru.whitebeef.beeflibrary.inventory;
 
+import me.clip.placeholderapi.PlaceholderAPI;
 import org.apache.logging.log4j.util.TriConsumer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import ru.whitebeef.beeflibrary.BeefLibrary;
 import ru.whitebeef.beeflibrary.utils.ScheduleUtils;
 
 import java.util.HashMap;
@@ -10,7 +12,7 @@ import java.util.Map;
 
 public class CustomInventoryGUICommand {
 
-    public static CustomInventoryGUICommand instance;
+    private static CustomInventoryGUICommand instance;
 
     public static CustomInventoryGUICommand getInstance() {
         return instance;
@@ -37,6 +39,7 @@ public class CustomInventoryGUICommand {
 
     public void runCommand(IInventoryGUI inventoryGUI, Player player, String command) {
         ScheduleUtils.runTask(() -> customCommands.getOrDefault(command.toLowerCase(),
-                (i, p, s) -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), s)).accept(inventoryGUI, player, command));
+                (i, p, s) -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), BeefLibrary.getInstance().isPlaceholderAPIHooked() ? PlaceholderAPI.setPlaceholders(player, s) : s))
+                .accept(inventoryGUI, player, command));
     }
 }

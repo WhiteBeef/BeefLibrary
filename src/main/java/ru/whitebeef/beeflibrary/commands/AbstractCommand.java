@@ -85,6 +85,10 @@ public abstract class AbstractCommand extends BukkitCommand {
         return onlyForPlayers;
     }
 
+    public int getMinArgsCount() {
+        return minArgsCount;
+    }
+
     @Nullable
     public BiConsumer<CommandSender, String[]> getOnCommand() {
         return onCommand;
@@ -131,7 +135,7 @@ public abstract class AbstractCommand extends BukkitCommand {
 
         args = Arrays.stream(args).skip(pair.left()).toArray(String[]::new);
 
-        if (args.length < minArgsCount) {
+        if (args.length < currentCommand.getMinArgsCount()) {
             StandardConsumers.NO_ARGS.getConsumer().accept(sender, args);
             return true;
         }
