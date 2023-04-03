@@ -158,6 +158,7 @@ public class PAPIUtils {
             sb.append(matcher.group(1).equals("sender") ? setPlaceholders(sender, placeholder) : setPlaceholders(recipient, placeholder));
             index = matcher.end();
         }
+        sb.append(text, index, text.length());
         return sb.toString();
     }
 }
