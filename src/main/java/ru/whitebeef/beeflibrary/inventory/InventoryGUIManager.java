@@ -1,10 +1,13 @@
 package ru.whitebeef.beeflibrary.inventory;
 
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import ru.whitebeef.beeflibrary.utils.ItemUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -78,6 +81,34 @@ public class InventoryGUIManager {
             inventoryTemplates.remove(namespace);
         }
     }
+
+    public void loadInventory(Plugin plugin, ConfigurationSection section) throws Exception {
+        IInventoryGUI.Builder builder = IInventoryGUI.builder(section.getName(), section.getInt("size"));
+
+        builder.setName(section.getString("name"));
+        for (String slotStr : section.getConfigurationSection("slots").getKeys(false)) {
+            int slot = Integer.parseInt(slotStr);
+            builder.setItem(slot, ItemUtils.parseItemStack(section.getConfigurationSection("slots" + "." + slotStr)));
+            builder.setCommands(slot, section.getStringList("commands"));
+        }
+
+        builder.addCloseCommands(section.getStringList("commandsOnClose"));
+
+        registerTemplate(plugin, builder);
+    }
+
+    public void loadInventories(Plugin plugin, String path) {
+        FileConfiguration cfg = plugin.getConfig();
+        for (String inventoryName : cfg.getConfigurationSection(path).getKeys(false)) {
+            try {
+                loadInventory(plugin, cfg.getConfigurationSection(path + "." + inventoryName));
+            } catch (Exception e) {
+                plugin.getLogger().severe("Error while loading InventoryGUI with namespace " + inventoryName);
+                e.printStackTrace();
+            }
+        }
+    }
+
 
     public boolean isRegisteredTemplate(Plugin plugin, String namespace) {
         return inventoryTemplates.containsKey(plugin.getName().toLowerCase() + "." + namespace);

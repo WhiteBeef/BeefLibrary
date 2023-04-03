@@ -129,7 +129,12 @@ public interface IInventoryGUI extends ClickableInventory, RenameableInventory {
         }
 
         public Builder setCommand(int slot, @NotNull String command) {
-            commands.computeIfAbsent(slot, k -> new ArrayList<>()).add(command);
+            this.commands.computeIfAbsent(slot, k -> new ArrayList<>()).add(command);
+            return this;
+        }
+
+        public Builder setCommands(int slot, @NotNull List<@NotNull String> commands) {
+            this.commands.computeIfAbsent(slot, k -> new ArrayList<>()).addAll(commands);
             return this;
         }
 
@@ -157,8 +162,8 @@ public interface IInventoryGUI extends ClickableInventory, RenameableInventory {
             return this;
         }
 
-        public Builder addCloseCommands(String... command) {
-            commandsOnClose.addAll(List.of(command));
+        public Builder addCloseCommands(List<String> commands) {
+            commandsOnClose.addAll(commands);
             return this;
         }
 

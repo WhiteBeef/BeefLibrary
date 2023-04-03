@@ -99,4 +99,8 @@ public final class BeefLibrary extends JavaPlugin {
         InventoryGUIManager.getInstance().registerTemplate(plugin, template);
     }
 
+    public static void registerGUIs(Plugin plugin, String path) {
+        InventoryGUIManager.getInstance().loadInventories(plugin, path);
+    }
+
 }

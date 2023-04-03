@@ -13,6 +13,7 @@ import org.intellij.lang.annotations.RegExp;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.whitebeef.beeflibrary.BeefLibrary;
+import ru.whitebeef.beeflibrary.chat.MessageFormatter;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -133,5 +134,17 @@ public class PAPIUtils {
         }
 
         return text;
+    }
+
+    public static Component replaceBiPlaceholders(Component component, CommandSender sender, CommandSender recipient) {
+        component = component
+                .replaceText(TextReplacementConfig.builder()
+                        .match("%(sender|recipient){1}\\-([A-z\\-\\_]+)%")
+                        .replacement((matchResult, builder) -> {
+                            MessageFormatter formatter = MessageFormatter.of("%" + matchResult.group(2) + "%");
+                            return matchResult.group(1).equals("sender") ? formatter.toComponent(sender) : formatter.toComponent(recipient);
+                        })
+                        .build());
+        return component;
     }
 }
