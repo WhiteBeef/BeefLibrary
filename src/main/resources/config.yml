@@ -2,3 +2,5 @@ messages:
   only_for_players: "&cТолько для игроков!"
   no_args: "&cНедостаточно аргументов!"
   no_permissions: "&cНедостаточно прав!"
+  player_not_found: "&cИгрок %player% не найден!"
+  inventorygui_not_found: "Иневнтарь %namespace% не найден!"

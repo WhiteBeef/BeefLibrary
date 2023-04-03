@@ -82,11 +82,11 @@ public final class MessageType {
 
     @NotNull
     public static String of(@NotNull String type) {
-        return messages.getOrDefault(type, "");
+        return messages.getOrDefault(type, type);
     }
 
     public static String of(@NotNull Plugin plugin, String type) {
-        return messages.getOrDefault(plugin.getName().toLowerCase() + "." + type, "");
+        return messages.getOrDefault(plugin.getName().toLowerCase() + "." + type, plugin.getName().toLowerCase() + "." + type);
     }
 
 }

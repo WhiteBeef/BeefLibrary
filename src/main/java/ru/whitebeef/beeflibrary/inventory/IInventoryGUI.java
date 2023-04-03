@@ -8,6 +8,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import ru.whitebeef.beeflibrary.inventory.impl.InventoryGUI;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,11 +21,15 @@ import java.util.stream.IntStream;
 
 public interface IInventoryGUI extends ClickableInventory, RenameableInventory {
 
-    Builder builder(String namespace, int size);
+    static Builder builder(String namespace, int size) {
+        return new InventoryGUI.Builder(namespace, size);
+    }
 
     @NotNull String getNamespace();
 
-    @NotNull Component getName();
+    @NotNull String getName();
+
+    @NotNull Component getName(Player player);
 
     int getSize();
 
@@ -72,9 +77,9 @@ public interface IInventoryGUI extends ClickableInventory, RenameableInventory {
         protected List<String> commandsOnClose = new ArrayList<>();
         protected String namespace;
         protected int size;
-        protected Component name;
-        protected Map<Integer, @NotNull BiPredicate<@NotNull Player, @Nullable ItemStack>> predicates;
-        protected Map<Integer, List<String>> commands;
+        protected String name;
+        protected Map<Integer, @NotNull BiPredicate<@NotNull Player, @Nullable ItemStack>> predicates = new HashMap<>();
+        protected Map<Integer, List<String>> commands = new HashMap<>();
         protected ItemStack[] items;
 
 
@@ -90,6 +95,7 @@ public interface IInventoryGUI extends ClickableInventory, RenameableInventory {
                 size = 54;
             }
             this.size = size;
+            items = new ItemStack[size];
         }
 
         public String getNamespace() {
@@ -104,7 +110,7 @@ public interface IInventoryGUI extends ClickableInventory, RenameableInventory {
             return this;
         }
 
-        public Builder setName(@NotNull Component name) {
+        public Builder setName(@NotNull String name) {
             this.name = name;
             return this;
         }

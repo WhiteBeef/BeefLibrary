@@ -51,6 +51,7 @@ public class InventoryGUIHandler implements Listener {
         if (inventoryGUI == null) {
             return;
         }
+        manager.removeOpenInventory((Player) event.getPlayer());
 
         inventoryGUI.onClose(event);
     }

@@ -10,8 +10,10 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import ru.whitebeef.beeflibrary.chat.MessageFormatter;
 import ru.whitebeef.beeflibrary.inventory.CustomInventoryGUICommand;
 import ru.whitebeef.beeflibrary.inventory.IInventoryGUI;
+import ru.whitebeef.beeflibrary.utils.ItemUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,13 +25,17 @@ import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 
 public class InventoryGUI implements IInventoryGUI {
+    public static Builder builder(String namespace, int size) {
+        return new Builder(namespace, size);
+    }
 
     private final Inventory inventory;
     private final String namespace;
     private final int size;
-    private Component name;
+    private final String name;
     private final Map<Integer, @NotNull BiPredicate<@NotNull Player, @Nullable ItemStack>> predicates;
     private final Map<Integer, List<String>> commands;
+
     private List<String> commandsOnClose;
 
     private Set<Integer> closedSlots;
@@ -65,12 +71,7 @@ public class InventoryGUI implements IInventoryGUI {
         });
     }
 
-    @Override
-    public Builder builder(String namespace, int size) {
-        return new Builder(namespace, size);
-    }
-
-    public InventoryGUI(@NotNull String namespace, int size, @NotNull Component name, @NotNull Map<Integer,
+    public InventoryGUI(@NotNull String namespace, int size, @NotNull String name, @NotNull Map<Integer,
             @NotNull BiPredicate<@NotNull Player, @Nullable ItemStack>> predicates,
                         @NotNull Map<Integer, List<@NotNull String>> commands, @NotNull ItemStack[] items,
                         @NotNull Set<@NotNull Integer> closedSlots, @NotNull List<@NotNull String> commandsOnClose) {
@@ -93,8 +94,13 @@ public class InventoryGUI implements IInventoryGUI {
 
     @Override
     @NotNull
-    public Component getName() {
+    public String getName() {
         return name;
+    }
+
+    @Override
+    public @NotNull Component getName(Player player) {
+        return MessageFormatter.of(name).toComponent(player);
     }
 
     @Override
@@ -128,7 +134,7 @@ public class InventoryGUI implements IInventoryGUI {
 
     @Override
     public void open(@NotNull Player player) {
-        player.openInventory(inventory);
+        player.openInventory(getInventory(player));
     }
 
     @Override
@@ -202,7 +208,7 @@ public class InventoryGUI implements IInventoryGUI {
 
     @Override
     public void setCommandsOnClose(@NotNull List<@NotNull String> commands) {
-
+        this.commandsOnClose = commands;
     }
 
     @Override
@@ -210,7 +216,18 @@ public class InventoryGUI implements IInventoryGUI {
 
     }
 
-    private static class Builder extends IInventoryGUI.Builder {
+    private Inventory getInventory(Player player) {
+        System.out.println(name);
+        Inventory inv = Bukkit.createInventory(null, size, MessageFormatter.of(name).toComponent(player));
+        for (int i = 0; i < this.inventory.getSize(); i++) {
+            if (player != null) {
+                inv.setItem(i, ItemUtils.getItemStack(player, inventory.getItem(i)));
+            }
+        }
+        return inv;
+    }
+
+    public static class Builder extends IInventoryGUI.Builder {
 
         public Builder(String namespace, int size) {
             super(namespace, size);

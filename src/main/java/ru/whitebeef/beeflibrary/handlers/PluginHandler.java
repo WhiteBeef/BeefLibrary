@@ -6,6 +6,7 @@ import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.event.server.PluginEnableEvent;
 import ru.whitebeef.beeflibrary.chat.MessageType;
 import ru.whitebeef.beeflibrary.commands.AbstractCommand;
+import ru.whitebeef.beeflibrary.inventory.InventoryGUIManager;
 import ru.whitebeef.beeflibrary.utils.SoundType;
 
 public class PluginHandler implements Listener {
@@ -18,8 +19,9 @@ public class PluginHandler implements Listener {
 
     @EventHandler
     public void onPluginDisable(PluginDisableEvent event) {
-        MessageType.unregisterTypesSection(event.getPlugin());
+        InventoryGUIManager.getInstance().unregisterTemplates(event.getPlugin());
         SoundType.unregisterTypesSection(event.getPlugin());
         AbstractCommand.unregisterAllCommands(event.getPlugin());
+        MessageType.unregisterTypesSection(event.getPlugin());
     }
 }

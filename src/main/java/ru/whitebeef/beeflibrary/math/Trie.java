@@ -1,5 +1,7 @@
 package ru.whitebeef.beeflibrary.math;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -66,25 +68,29 @@ public class Trie {
         return false;
     }
 
+    @Nullable
     public String searchMaximumPrefix(String word) {
         StringBuilder ret = new StringBuilder();
         TrieNode current = root;
+        boolean find = false;
         for (int i = 0; i < word.length(); i++) {
             char ch = word.charAt(i);
             TrieNode node = current.getChild(ch);
 
             if (node == null) {
                 if (current.isEndOfWord()) {
+                    find = true;
                     ret = new StringBuilder().append(word, 0, i);
                 }
                 break;
             }
             if (node.isEndOfWord()) {
+                find = true;
                 ret = new StringBuilder().append(word, 0, i);
             }
             current = node;
         }
-        return ret.toString();
+        return !find ? null : ret.toString();
     }
 
     public void remove(String word) {

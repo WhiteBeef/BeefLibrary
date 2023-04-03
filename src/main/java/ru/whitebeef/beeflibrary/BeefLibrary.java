@@ -8,7 +8,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.whitebeef.beeflibrary.commands.AbstractCommand;
+import ru.whitebeef.beeflibrary.commands.SimpleCommand;
+import ru.whitebeef.beeflibrary.commands.impl.inventorygui.OpenSubCommand;
 import ru.whitebeef.beeflibrary.handlers.PluginHandler;
+import ru.whitebeef.beeflibrary.inventory.IInventoryGUI;
 import ru.whitebeef.beeflibrary.inventory.InventoryGUIManager;
 import ru.whitebeef.beeflibrary.inventory.deprecated.OldInventoryGUIHandler;
 import ru.whitebeef.beeflibrary.inventory.deprecated.OldInventoryGUIManager;
@@ -35,6 +38,17 @@ public final class BeefLibrary extends JavaPlugin {
         registerListeners(this, new PluginHandler(), new OldInventoryGUIHandler());
         new OldInventoryGUIManager();
         new InventoryGUIManager();
+        registerCommands();
+    }
+
+    private void registerCommands() {
+        AbstractCommand.builder("inventorygui", SimpleCommand.class)
+                .setPermission("beeflibrary.commands.inventorygui")
+                .setMinArgsCount(1)
+                .addSubCommand(AbstractCommand.builder("open", OpenSubCommand.class)
+                        .setMinArgsCount(2)
+                        .build())
+                .build().register(this);
     }
 
     @Override
@@ -79,6 +93,10 @@ public final class BeefLibrary extends JavaPlugin {
 
     public static void registerPlaceholder(Plugin plugin, String placeholder, Function<CommandSender, Component> function) {
         PAPIUtils.registerPlaceholder(plugin, placeholder, function);
+    }
+
+    public static void registerGUI(Plugin plugin, IInventoryGUI.Builder template) {
+        InventoryGUIManager.getInstance().registerTemplate(plugin, template);
     }
 
 }

@@ -73,6 +73,31 @@ public class ItemUtils {
         return itemStack;
     }
 
+    public static ItemStack getItemStack(Player player, ItemStack itemStack) {
+        if (itemStack == null) {
+            return null;
+        }
+        itemStack = itemStack.clone();
+        if (itemStack.hasItemMeta()) {
+            ItemMeta meta = itemStack.getItemMeta();
+            if (meta.hasLore()) {
+                ArrayList<Component> lore = new ArrayList<>();
+                if (player != null) {
+                    meta.getLore().forEach(str -> lore.add(MessageFormatter.of(str).toComponent(player).decoration(TextDecoration.ITALIC, false)));
+                }
+                meta.lore(lore);
+            }
+            if (meta.hasDisplayName()) {
+                if (player != null) {
+                    meta.displayName(MessageFormatter.of(meta.getDisplayName()).toComponent(player).decoration(TextDecoration.ITALIC, false));
+                }
+            }
+            itemStack.setItemMeta(meta);
+        }
+        return itemStack;
+    }
+
+
     public static ArrayList<ItemStack> parseItemsMapToArrayList(HashMap<ItemStack, Integer> mapStart) {
         HashMap<ItemStack, Integer> map = new HashMap<>(mapStart);
         ArrayList<ItemStack> retArray = new ArrayList<>();
