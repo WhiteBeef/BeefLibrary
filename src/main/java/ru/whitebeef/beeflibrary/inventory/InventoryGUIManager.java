@@ -67,6 +67,12 @@ public class InventoryGUIManager {
         }
     }
 
+    public void closeAllInventories() {
+        for (var entry : openInventoryGUI.entrySet()) {
+            entry.getKey().closeInventory(InventoryCloseEvent.Reason.PLUGIN);
+        }
+    }
+
     public void unregisterTemplates(Plugin plugin) {
         closeInventories(plugin);
 
@@ -130,17 +136,11 @@ public class InventoryGUIManager {
         }
     }
 
-    /**
-     * Using package-private modifier to hide this method from outside eyes
-     */
-    void addOpenInventory(@NotNull Player player, @NotNull IInventoryGUI inventoryGUI) {
+    public void addOpenInventory(@NotNull Player player, @NotNull IInventoryGUI inventoryGUI) {
         openInventoryGUI.put(player, inventoryGUI);
     }
 
-    /**
-     * Using package-private modifier to hide this method from outside eyes
-     */
-    void removeOpenInventory(@NotNull Player player) {
+    public void removeOpenInventory(@NotNull Player player) {
         openInventoryGUI.remove(player);
     }
 

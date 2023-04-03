@@ -147,4 +147,17 @@ public class PAPIUtils {
                         .build());
         return component;
     }
+
+    public static String replaceBiPlaceholders(String text, CommandSender sender, CommandSender recipient) {
+        Matcher matcher = Pattern.compile("%(sender|recipient){1}\\-([A-z\\-\\_]+)%").matcher(text);
+        int index = 0;
+        StringBuilder sb = new StringBuilder();
+        while (matcher.find(index)) {
+            sb.append(text, index, matcher.start());
+            String placeholder = "%" + matcher.group(2) + "%";
+            sb.append(matcher.group(1).equals("sender") ? setPlaceholders(sender, placeholder) : setPlaceholders(recipient, placeholder));
+            index = matcher.end();
+        }
+        return sb.toString();
+    }
 }

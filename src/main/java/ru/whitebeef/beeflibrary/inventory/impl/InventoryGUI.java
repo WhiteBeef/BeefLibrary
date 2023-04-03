@@ -13,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import ru.whitebeef.beeflibrary.chat.MessageFormatter;
 import ru.whitebeef.beeflibrary.inventory.CustomInventoryGUICommand;
 import ru.whitebeef.beeflibrary.inventory.IInventoryGUI;
+import ru.whitebeef.beeflibrary.inventory.InventoryGUIManager;
 import ru.whitebeef.beeflibrary.utils.ItemUtils;
 
 import java.util.ArrayList;
@@ -135,6 +136,7 @@ public class InventoryGUI implements IInventoryGUI {
     @Override
     public void open(@NotNull Player player) {
         player.openInventory(getInventory(player));
+        InventoryGUIManager.getInstance().addOpenInventory(player, this);
     }
 
     @Override
@@ -216,8 +218,8 @@ public class InventoryGUI implements IInventoryGUI {
 
     }
 
-    private Inventory getInventory(Player player) {
-        System.out.println(name);
+    @Override
+    public Inventory getInventory(Player player) {
         Inventory inv = Bukkit.createInventory(null, size, MessageFormatter.of(name).toComponent(player));
         for (int i = 0; i < this.inventory.getSize(); i++) {
             if (player != null) {

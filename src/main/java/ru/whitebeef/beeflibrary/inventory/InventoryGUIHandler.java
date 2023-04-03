@@ -25,7 +25,6 @@ public class InventoryGUIHandler implements Listener {
         }
 
         if (event.isShiftClick()) {
-
             inventoryGUI.addItem(event.getCurrentItem());
         }
     }

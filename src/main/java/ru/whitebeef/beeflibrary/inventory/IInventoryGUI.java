@@ -71,6 +71,8 @@ public interface IInventoryGUI extends ClickableInventory, RenameableInventory {
 
     @NotNull Inventory getInventory();
 
+    @NotNull Inventory getInventory(Player player);
+
     abstract class Builder {
 
         protected Set<Integer> closedSlots = new HashSet<>();
@@ -96,6 +98,7 @@ public interface IInventoryGUI extends ClickableInventory, RenameableInventory {
             }
             this.size = size;
             items = new ItemStack[size];
+            IntStream.range(0, size).forEach(closedSlots::add);
         }
 
         public String getNamespace() {

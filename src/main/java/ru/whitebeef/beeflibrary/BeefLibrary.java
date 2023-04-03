@@ -5,18 +5,23 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.event.Listener;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.whitebeef.beeflibrary.commands.AbstractCommand;
 import ru.whitebeef.beeflibrary.commands.SimpleCommand;
 import ru.whitebeef.beeflibrary.commands.impl.inventorygui.OpenSubCommand;
 import ru.whitebeef.beeflibrary.handlers.PluginHandler;
+import ru.whitebeef.beeflibrary.inventory.CustomInventoryGUICommand;
 import ru.whitebeef.beeflibrary.inventory.IInventoryGUI;
+import ru.whitebeef.beeflibrary.inventory.InventoryGUIHandler;
 import ru.whitebeef.beeflibrary.inventory.InventoryGUIManager;
 import ru.whitebeef.beeflibrary.inventory.deprecated.OldInventoryGUIHandler;
 import ru.whitebeef.beeflibrary.inventory.deprecated.OldInventoryGUIManager;
 import ru.whitebeef.beeflibrary.placeholderapi.PAPIUtils;
+import ru.whitebeef.beeflibrary.utils.ItemUtils;
 
+import java.util.ArrayList;
 import java.util.function.Function;
 
 public final class BeefLibrary extends JavaPlugin {
@@ -32,12 +37,14 @@ public final class BeefLibrary extends JavaPlugin {
     public void onEnable() {
         instance = this;
 
-        saveDefaultConfig();
-        reloadConfig();
+        loadConfig(this);
+
         tryHookPlaceholderAPI();
-        registerListeners(this, new PluginHandler(), new OldInventoryGUIHandler());
+        registerListeners(this, new PluginHandler(), new OldInventoryGUIHandler(), new InventoryGUIHandler());
+
         new OldInventoryGUIManager();
         new InventoryGUIManager();
+        registerCustomGUICommands();
         registerCommands();
     }
 
@@ -53,6 +60,7 @@ public final class BeefLibrary extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        InventoryGUIManager.getInstance().closeAllInventories();
         AbstractCommand.unregisterAllCommands(this);
     }
 
@@ -101,6 +109,25 @@ public final class BeefLibrary extends JavaPlugin {
 
     public static void registerGUIs(Plugin plugin, String path) {
         InventoryGUIManager.getInstance().loadInventories(plugin, path);
+    }
+
+    public static void loadConfig(Plugin plugin) {
+        plugin.saveDefaultConfig();
+        plugin.reloadConfig();
+    }
+
+    private void registerCustomGUICommands() {
+        CustomInventoryGUICommand.setInstance(new CustomInventoryGUICommand());
+        CustomInventoryGUICommand.getInstance().registerCommand("close", ((inventoryGUI, player, s) -> inventoryGUI.close()));
+        CustomInventoryGUICommand.getInstance().registerCommand("return", ((inventoryGUI, player, s) -> {
+            ArrayList<ItemStack> newItems = ItemUtils.parseItemsMapToArrayList(ItemUtils.getNewItems(inventoryGUI,
+                    inventoryGUI.getInventory(player), player.getOpenInventory().getTopInventory()));
+            ItemUtils.returnItems(player, newItems);
+        }));
+        CustomInventoryGUICommand.getInstance().registerCommand("clear", ((inventoryGUI, player, s) ->
+                InventoryGUIManager.getInstance().openTemplate(player, inventoryGUI.getNamespace())));
+        CustomInventoryGUICommand.getInstance().registerCommand("open", ((inventoryGUI, player, s) ->
+                InventoryGUIManager.getInstance().openTemplate(player, s.replace("openInv ", ""))));
     }
 
 }

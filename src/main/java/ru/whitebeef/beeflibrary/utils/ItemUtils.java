@@ -17,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 import ru.whitebeef.beeflibrary.BeefLibrary;
 import ru.whitebeef.beeflibrary.chat.MessageFormatter;
+import ru.whitebeef.beeflibrary.inventory.IInventoryGUI;
 import ru.whitebeef.beeflibrary.inventory.deprecated.OldInventoryGUI;
 
 import java.io.ByteArrayInputStream;
@@ -132,6 +133,38 @@ public class ItemUtils {
         ItemStack[] beforeStorageContents = beforeInventory.getStorageContents();
         for (int i = 0; i < beforeStorageContents.length; i++) {
             if (!gui.isChangeableSlot(i)) {
+                continue;
+            }
+            if (beforeStorageContents[i] == null) {
+                if (afterStorageContents[i] != null) {
+                    map.put(afterStorageContents[i], map.getOrDefault(afterStorageContents[i], 0) + afterStorageContents[i].getAmount());
+                }
+                continue;
+            } else if (afterStorageContents[i] == null) {
+                map.put(beforeStorageContents[i], map.getOrDefault(beforeStorageContents[i], 0) - beforeStorageContents[i].getAmount());
+                continue;
+            }
+            if (!beforeStorageContents[i].equals(afterStorageContents[i])) {
+                map.put(beforeStorageContents[i], map.getOrDefault(beforeStorageContents[i], 0) - beforeStorageContents[i].getAmount());
+                map.put(afterStorageContents[i], map.getOrDefault(afterStorageContents[i], 0) + afterStorageContents[i].getAmount());
+                continue;
+            }
+            if (beforeStorageContents[i].getAmount() != afterStorageContents[i].getAmount()) {
+                map.put(afterStorageContents[i], map.getOrDefault(afterStorageContents[i], 0) + afterStorageContents[i].getAmount() - beforeStorageContents[i].getAmount());
+            }
+        }
+        return map;
+    }
+
+    public static HashMap<ItemStack, Integer> getNewItems(IInventoryGUI gui, Inventory beforeInventory, Inventory afterInventory) {
+        HashMap<ItemStack, Integer> map = new HashMap<>();
+        if (afterInventory == null) {
+            return map;
+        }
+        ItemStack[] afterStorageContents = afterInventory.getStorageContents();
+        ItemStack[] beforeStorageContents = beforeInventory.getStorageContents();
+        for (int i = 0; i < beforeStorageContents.length; i++) {
+            if (gui.isSlotClosed(i)) {
                 continue;
             }
             if (beforeStorageContents[i] == null) {
