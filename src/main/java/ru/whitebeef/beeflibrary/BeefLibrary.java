@@ -20,6 +20,7 @@ import ru.whitebeef.beeflibrary.inventory.deprecated.OldInventoryGUIHandler;
 import ru.whitebeef.beeflibrary.inventory.deprecated.OldInventoryGUIManager;
 import ru.whitebeef.beeflibrary.placeholderapi.PAPIUtils;
 import ru.whitebeef.beeflibrary.utils.ItemUtils;
+import ru.whitebeef.beeflibrary.utils.SoundType;
 
 import java.util.ArrayList;
 import java.util.function.Function;
@@ -119,6 +120,8 @@ public final class BeefLibrary extends JavaPlugin {
     private void registerCustomGUICommands() {
         CustomInventoryGUICommand.setInstance(new CustomInventoryGUICommand());
         CustomInventoryGUICommand.getInstance().registerCommand("close", ((inventoryGUI, player, s) -> inventoryGUI.close()));
+        CustomInventoryGUICommand.getInstance().registerCommand("sound", ((inventoryGUI, player, s) ->
+                SoundType.play(player, s.replace("sound ", ""))));
         CustomInventoryGUICommand.getInstance().registerCommand("return", ((inventoryGUI, player, s) -> {
             ArrayList<ItemStack> newItems = ItemUtils.parseItemsMapToArrayList(ItemUtils.getNewItems(inventoryGUI,
                     inventoryGUI.getInventory(player), player.getOpenInventory().getTopInventory()));

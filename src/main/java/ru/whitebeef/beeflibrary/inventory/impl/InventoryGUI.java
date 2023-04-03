@@ -19,17 +19,18 @@ import ru.whitebeef.beeflibrary.utils.ItemUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiPredicate;
-import java.util.stream.Collectors;
 
 public class InventoryGUI implements IInventoryGUI {
     public static Builder builder(String namespace, int size) {
         return new Builder(namespace, size);
     }
 
+    private Set<Player> openedPlayers = new HashSet<>();
     private final Inventory inventory;
     private final String namespace;
     private final int size;
@@ -38,17 +39,30 @@ public class InventoryGUI implements IInventoryGUI {
     private final Map<Integer, List<String>> commands;
 
     private List<String> commandsOnClose;
-
     private Set<Integer> closedSlots;
+
+    public InventoryGUI(@NotNull String namespace, int size, @NotNull String name, @NotNull Map<Integer,
+            @NotNull BiPredicate<@NotNull Player, @Nullable ItemStack>> predicates,
+                        @NotNull Map<Integer, List<@NotNull String>> commands, @NotNull ItemStack[] items,
+                        @NotNull Set<@NotNull Integer> closedSlots, @NotNull List<@NotNull String> commandsOnClose) {
+        this.namespace = namespace;
+        this.size = size;
+        this.name = name;
+        this.predicates = predicates;
+        this.commands = commands;
+        this.closedSlots = closedSlots;
+        this.commandsOnClose = commandsOnClose;
+        inventory = Bukkit.createInventory(null, size, name);
+        inventory.setStorageContents(items);
+    }
 
     @Override
     public void onClick(InventoryClickEvent event) {
-        if (event.isShiftClick()) {
-            event.setCancelled(true);
-            return;
-        }
         if (event.getClickedInventory() != event.getInventory()) {
             return;
+        }
+        if (event.isShiftClick()) {
+            event.setCancelled(true);
         }
         int slot = event.getSlot();
 
@@ -72,20 +86,6 @@ public class InventoryGUI implements IInventoryGUI {
         });
     }
 
-    public InventoryGUI(@NotNull String namespace, int size, @NotNull String name, @NotNull Map<Integer,
-            @NotNull BiPredicate<@NotNull Player, @Nullable ItemStack>> predicates,
-                        @NotNull Map<Integer, List<@NotNull String>> commands, @NotNull ItemStack[] items,
-                        @NotNull Set<@NotNull Integer> closedSlots, @NotNull List<@NotNull String> commandsOnClose) {
-        this.namespace = namespace;
-        this.size = size;
-        this.name = name;
-        this.predicates = predicates;
-        this.commands = commands;
-        this.closedSlots = closedSlots;
-        this.commandsOnClose = commandsOnClose;
-        inventory = Bukkit.createInventory(null, size, name);
-        inventory.setStorageContents(items);
-    }
 
     @Override
     @NotNull
@@ -136,13 +136,14 @@ public class InventoryGUI implements IInventoryGUI {
     @Override
     public void open(@NotNull Player player) {
         player.openInventory(getInventory(player));
+        openedPlayers.add(player);
         InventoryGUIManager.getInstance().addOpenInventory(player, this);
     }
 
     @Override
     @NotNull
     public Set<@NotNull Player> getOpenedPlayers() {
-        return inventory.getViewers().stream().map(humanEntity -> (Player) humanEntity).collect(Collectors.toSet());
+        return openedPlayers;
     }
 
     @Override
@@ -171,6 +172,8 @@ public class InventoryGUI implements IInventoryGUI {
     @Override
     public void close(Player player) {
         player.closeInventory(InventoryCloseEvent.Reason.PLUGIN);
+        InventoryGUIManager.getInstance().removeOpenInventory(player);
+        openedPlayers.remove(player);
     }
 
     @Override

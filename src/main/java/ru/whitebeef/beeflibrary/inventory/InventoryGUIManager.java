@@ -95,7 +95,7 @@ public class InventoryGUIManager {
         for (String slotStr : section.getConfigurationSection("slots").getKeys(false)) {
             int slot = Integer.parseInt(slotStr);
             builder.setItem(slot, ItemUtils.parseItemStack(section.getConfigurationSection("slots" + "." + slotStr)));
-            builder.setCommands(slot, section.getStringList("commands"));
+            builder.setCommands(slot, section.getStringList("slots" + "." + slotStr + ".commands"));
         }
 
         builder.addCloseCommands(section.getStringList("commandsOnClose"));

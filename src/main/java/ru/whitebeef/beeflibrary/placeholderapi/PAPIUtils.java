@@ -4,7 +4,6 @@ import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -79,9 +78,8 @@ public class PAPIUtils {
     }
 
     public static String setPlaceholders(CommandSender sender, String text) {
-
         if (!(sender instanceof Player player)) {
-            return replaceCustomPlaceHolders(sender, text).replaceAll("%player_name%", sender.getName()).replaceAll("%(?!message\\b)[A-z0-9_]+%", "");
+            return text.replaceAll("%player_name%", sender.getName()).replaceAll("%(?!message\\b)[A-z0-9_]+%", "");
         }
         return BeefLibrary.getInstance().isPlaceholderAPIHooked() ? PlaceholderAPI.setPlaceholders(player, text) : text;
     }
@@ -91,7 +89,7 @@ public class PAPIUtils {
 
         Set<String> toReplace = new HashSet<>();
 
-        Pattern pattern = Pattern.compile("%([A-z0-9]+)_([A-z0-9_-]+)%");
+        Pattern pattern = Pattern.compile("%[\\w\\-]+%");
 
         Matcher matcher = pattern.matcher(gson);
         int index = 0;
@@ -100,7 +98,7 @@ public class PAPIUtils {
             if (isRegisteredPlaceholder(placeholder)) {
                 toReplace.add(placeholder);
             }
-            index = matcher.end() + 1;
+            index = matcher.end();
         }
 
         for (@RegExp String placeholder : toReplace) {
@@ -114,32 +112,10 @@ public class PAPIUtils {
         return component;
     }
 
-    private static String replaceCustomPlaceHolders(CommandSender commandSender, String text) {
-        Set<String> toReplace = new HashSet<>();
-
-        Pattern pattern = Pattern.compile("%([A-z0-9]+)_([A-z0-9_-]+)%");
-
-        Matcher matcher = pattern.matcher(text);
-        int index = 0;
-        while (matcher.find(index)) {
-            String placeholder = text.substring(matcher.start(), matcher.end());
-            if (isRegisteredPlaceholder(placeholder)) {
-                toReplace.add(placeholder);
-            }
-            index = matcher.end() + 1;
-        }
-
-        for (@RegExp String placeholder : toReplace) {
-            text = text.replaceAll(placeholder, LegacyComponentSerializer.legacySection().serialize(getRegisteredPlaceHolder(placeholder).apply(commandSender)));
-        }
-
-        return text;
-    }
-
     public static Component replaceBiPlaceholders(Component component, CommandSender sender, CommandSender recipient) {
         component = component
                 .replaceText(TextReplacementConfig.builder()
-                        .match("%(sender|recipient){1}\\-([A-z\\-\\_]+)%")
+                        .match("%(sender|recipient){1}\\-([\\w\\-]+)%")
                         .replacement((matchResult, builder) -> {
                             MessageFormatter formatter = MessageFormatter.of("%" + matchResult.group(2) + "%");
                             return matchResult.group(1).equals("sender") ? formatter.toComponent(sender) : formatter.toComponent(recipient);
@@ -155,7 +131,11 @@ public class PAPIUtils {
         while (matcher.find(index)) {
             sb.append(text, index, matcher.start());
             String placeholder = "%" + matcher.group(2) + "%";
-            sb.append(matcher.group(1).equals("sender") ? setPlaceholders(sender, placeholder) : setPlaceholders(recipient, placeholder));
+            if (isRegisteredPlaceholder(placeholder)) {
+                sb.append("%").append(matcher.group(1)).append("-").append(matcher.group(2)).append("%");
+            } else {
+                sb.append(matcher.group(1).equals("sender") ? setPlaceholders(sender, placeholder) : setPlaceholders(recipient, placeholder));
+            }
             index = matcher.end();
         }
         sb.append(text, index, text.length());
