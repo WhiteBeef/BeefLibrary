@@ -17,5 +17,4 @@ public class MessageSender {
         sendMessage(sender, MessageType.of(messageType));
     }
 
-
 }

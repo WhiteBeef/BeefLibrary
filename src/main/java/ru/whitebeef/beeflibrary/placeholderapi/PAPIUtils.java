@@ -59,11 +59,11 @@ public class PAPIUtils {
     }
 
     public static Component setPlaceholders(@Nullable CommandSender commandSender, @NotNull Component component) {
-        String line = GsonComponentSerializer.gson().serialize(component);
         if (commandSender == null) {
             return component;
         }
         component = replaceCustomPlaceHolders(commandSender, component);
+        String line = GsonComponentSerializer.gson().serialize(component);
         if (!(commandSender instanceof Player player)) {
             component = GsonComponentSerializer.gson().deserialize(line)
                     .replaceText(TextReplacementConfig.builder()
