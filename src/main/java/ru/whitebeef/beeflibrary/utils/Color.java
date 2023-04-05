@@ -15,6 +15,8 @@ public class Color {
     @NotNull
     public static String colorize(@NotNull String s) {
         s = applyHex(s);
-        return ChatColor.translateAlternateColorCodes('&', s);
+        s = ChatColor.translateAlternateColorCodes('&', s);
+        return s;
     }
+
 }

@@ -7,6 +7,7 @@ import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
@@ -51,13 +52,11 @@ public class ItemUtils {
         ItemMeta meta = itemStack.getItemMeta();
 
         if (section.isString("name")) {
-            meta.displayName(MessageFormatter.of(section.getString("name")).toComponent().decoration(TextDecoration.ITALIC, false));
+            meta.setDisplayName(section.getString("name"));
         }
 
         if (section.isList("lore")) {
-            List<Component> lore = new ArrayList<>();
-            section.getStringList("lore").forEach(str -> lore.add(MessageFormatter.of(str).toComponent()));
-            meta.lore(lore);
+            meta.setLore(section.getStringList("lore"));
         }
 
         if (section.isInt("customModelData")) {
@@ -93,6 +92,7 @@ public class ItemUtils {
                     meta.displayName(MessageFormatter.of(meta.getDisplayName()).toComponent(player).decoration(TextDecoration.ITALIC, false));
                 }
             }
+            meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
             itemStack.setItemMeta(meta);
         }
         return itemStack;

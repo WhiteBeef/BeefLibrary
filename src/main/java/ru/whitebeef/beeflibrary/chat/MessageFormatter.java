@@ -38,7 +38,8 @@ public class MessageFormatter {
         if (sender instanceof Player player) {
             applyPlaceholders(player);
         }
-        return PAPIUtils.setPlaceholders(sender, LegacyComponentSerializer.legacySection().deserialize(Color.colorize(message)));
+        message = Color.colorize(message);
+        return PAPIUtils.setPlaceholders(sender, LegacyComponentSerializer.legacySection().deserialize(message));
     }
 
     public Component toComponent() {
