@@ -35,14 +35,13 @@ public class InventoryGUI implements IInventoryGUI {
     private final String namespace;
     private final int size;
     private final String name;
-    private final Map<Integer, @NotNull BiPredicate<@NotNull Player, @Nullable ItemStack>> predicates;
+    private final Map<Integer, List<@NotNull BiPredicate<@NotNull Player, @Nullable ItemStack>>> predicates;
     private final Map<Integer, List<String>> commands;
-
     private List<String> commandsOnClose;
     private Set<Integer> closedSlots;
 
     public InventoryGUI(@NotNull String namespace, int size, @NotNull String name, @NotNull Map<Integer,
-            @NotNull BiPredicate<@NotNull Player, @Nullable ItemStack>> predicates,
+            List<@NotNull BiPredicate<@NotNull Player, @Nullable ItemStack>>> predicates,
                         @NotNull Map<Integer, List<@NotNull String>> commands, @NotNull ItemStack[] items,
                         @NotNull Set<@NotNull Integer> closedSlots, @NotNull List<@NotNull String> commandsOnClose) {
         this.namespace = namespace;
@@ -118,7 +117,12 @@ public class InventoryGUI implements IInventoryGUI {
 
     @Override
     public boolean testPredicate(@NotNull Player player, @NotNull ItemStack item, int slot) {
-        return predicates.getOrDefault(slot, (a, b) -> true).test(player, item);
+        for(BiPredicate<Player, ItemStack> predicate : predicates.getOrDefault(slot, new ArrayList<>())){
+            if(!predicate.test(player,item)){
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override

@@ -2,9 +2,12 @@ package ru.whitebeef.beeflibrary.utils;
 
 import org.apache.commons.lang3.RandomUtils;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,6 +23,49 @@ public class ItemGenerateProperties {
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    public static ItemGenerateProperties of(ConfigurationSection section) {
+        Builder builder = new Builder();
+
+        if (section.isString("material")) {
+            builder.setMaterial(Material.valueOf(section.getString("material")));
+        }
+
+        if (section.isString("name")) {
+            builder.setName(section.getString("name"));
+        }
+
+        if (section.isString("count")) {
+            builder.setCount(section.getString("count"));
+        }
+
+        if (section.isString("customModelData")) {
+            builder.setCustomModelData(section.getString("customModelData"));
+        }
+
+        if (section.isString("damage")) {
+            builder.setDamage(section.getString("damage"));
+        }
+
+        if (section.isList("lore")) {
+            builder.setLore(section.getStringList("lore"));
+        }
+
+        if (section.isConfigurationSection("enchantments")) {
+            HashMap<Enchantment, Integer> enchantments = new HashMap<>();
+
+            for (String enchantmentString : section.getConfigurationSection("enchantments").getKeys(false)) {
+                ConfigurationSection enchantmentSection = section.getConfigurationSection("enchantments." + enchantmentString);
+
+                Enchantment enchantment = Enchantment.getByKey(NamespacedKey.fromString(enchantmentString));
+                enchantments.put(enchantment, getInt(enchantmentSection.getString("level")));
+            }
+
+            builder.setEnchantments(enchantments);
+        }
+
+        return builder.build();
     }
 
     private final Function<Player, Material> material;
@@ -49,7 +95,7 @@ public class ItemGenerateProperties {
             itemStack.setAmount(count);
         }
 
-        if (itemStack.hasItemMeta()) {
+        if (itemStack.getItemMeta() != null) {
             ItemMeta meta = itemStack.getItemMeta();
 
             String name = this.name.apply(player);
@@ -68,8 +114,8 @@ public class ItemGenerateProperties {
             }
 
             Integer damage = getInt(this.damage.apply(player));
-            if (damage != null) {
-                itemStack.setDurability((short) (itemStack.getDurability() - damage));
+            if (damage != null && meta instanceof Damageable damageable) {
+                damageable.setDamage(damage);
             }
 
             Map<Enchantment, Integer> enchantments = this.enchantments.apply(player);
@@ -85,13 +131,13 @@ public class ItemGenerateProperties {
         return itemStack;
     }
 
-    private Integer getInt(String line) {
+    private static Integer getInt(String line) {
         try {
             return Integer.parseInt(line);
         } catch (NumberFormatException e) {
             try {
                 String[] arr = line.split("\\.\\.");
-                return RandomUtils.nextInt(Integer.parseInt(arr[0]), Integer.parseInt(arr[1]));
+                return RandomUtils.nextInt(Integer.parseInt(arr[0]), Integer.parseInt(arr[1]) + 1);
             } catch (NumberFormatException ignored) {
                 return null;
             }
@@ -150,6 +196,11 @@ public class ItemGenerateProperties {
 
         public Builder setLore(Function<@Nullable Player, List<String>> lore) {
             this.lore = lore;
+            return this;
+        }
+
+        public Builder setLore(List<String> lore) {
+            this.lore = p -> lore;
             return this;
         }
 

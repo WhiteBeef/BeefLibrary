@@ -80,7 +80,7 @@ public interface IInventoryGUI extends ClickableInventory, RenameableInventory {
         protected String namespace;
         protected int size;
         protected String name;
-        protected Map<Integer, @NotNull BiPredicate<@NotNull Player, @Nullable ItemStack>> predicates = new HashMap<>();
+        protected Map<Integer, List<BiPredicate<Player, ItemStack>>> predicates = new HashMap<>();
         protected Map<Integer, List<String>> commands = new HashMap<>();
         protected ItemStack[] items;
 
@@ -118,8 +118,8 @@ public interface IInventoryGUI extends ClickableInventory, RenameableInventory {
             return this;
         }
 
-        public Builder setPredicate(int slot, @NotNull BiPredicate<@NotNull Player, @Nullable ItemStack> predicate) {
-            this.predicates.put(slot, predicate);
+        public Builder addPredicate(int slot, @NotNull BiPredicate<@NotNull Player, @Nullable ItemStack> predicate) {
+            this.predicates.computeIfAbsent(slot, k -> new ArrayList<>()).add(predicate);
             return this;
         }
 
