@@ -2,6 +2,7 @@ package ru.whitebeef.beeflibrary.utils;
 
 import org.apache.commons.lang3.RandomUtils;
 import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -9,7 +10,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -24,13 +27,17 @@ public class ItemGenerateProperties {
     private final Function<Player, List<String>> lore;
     private final Function<Player, String> count;
     private final Function<Player, String> customModelData;
+    private final Function<Player, Map<Enchantment, Integer>> enchantments;
+    private final Function<Player, String> damage;
 
-    public ItemGenerateProperties(Function<Player, Material> material, Function<Player, String> name, Function<Player, List<String>> lore, Function<Player, String> count, Function<Player, String> customModelData, Function<Player, String> nbt) {
+    public ItemGenerateProperties(Function<Player, Material> material, Function<Player, String> name, Function<Player, List<String>> lore, Function<Player, String> count, Function<Player, String> customModelData, Function<Player, Map<Enchantment, Integer>> enchantments, Function<Player, String> damage) {
         this.material = Objects.requireNonNullElse(material, (p) -> Material.STONE);
         this.name = Objects.requireNonNullElse(name, (p) -> "");
         this.lore = Objects.requireNonNullElse(lore, (p) -> Collections.emptyList());
         this.count = Objects.requireNonNullElse(count, (p) -> "1");
         this.customModelData = Objects.requireNonNullElse(customModelData, (p) -> "0");
+        this.enchantments = Objects.requireNonNullElse(enchantments, (p) -> new HashMap<>());
+        this.damage = Objects.requireNonNullElse(damage, (p) -> "0");
     }
 
     @NotNull
@@ -55,10 +62,21 @@ public class ItemGenerateProperties {
                 meta.setLore(lore);
             }
 
-
             Integer customModelData = getInt(this.customModelData.apply(player));
             if (customModelData != null) {
                 meta.setCustomModelData(customModelData);
+            }
+
+            Integer damage = getInt(this.damage.apply(player));
+            if (damage != null) {
+                itemStack.setDurability((short) (itemStack.getDurability() - damage));
+            }
+
+            Map<Enchantment, Integer> enchantments = this.enchantments.apply(player);
+            if (enchantments != null && !enchantments.isEmpty()) {
+                for (var entry : enchantments.entrySet()) {
+                    meta.addEnchant(entry.getKey(), entry.getValue(), true);
+                }
             }
 
             itemStack.setItemMeta(meta);
@@ -82,14 +100,15 @@ public class ItemGenerateProperties {
 
     public static class Builder {
 
-        private Function<Player, Material> material;
-        private Function<Player, String> name;
-        private Function<Player, List<String>> lore;
-        private Function<Player, String> count;
-        private Function<Player, String> customModelData;
-        private Function<Player, String> nbt;
+        private Function<@Nullable Player, Material> material;
+        private Function<@Nullable Player, String> name;
+        private Function<@Nullable Player, List<String>> lore;
+        private Function<@Nullable Player, String> count;
+        private Function<@Nullable Player, String> customModelData;
+        private Function<@Nullable Player, Map<Enchantment, Integer>> enchantments;
+        private Function<@Nullable Player, String> damage;
 
-        public Builder setName(Function<Player, String> name) {
+        public Builder setName(Function<@Nullable Player, String> name) {
             this.name = name;
             return this;
         }
@@ -99,7 +118,7 @@ public class ItemGenerateProperties {
             return this;
         }
 
-        public Builder setMaterial(Function<Player, Material> material) {
+        public Builder setMaterial(Function<@Nullable Player, Material> material) {
             this.material = material;
             return this;
         }
@@ -109,7 +128,7 @@ public class ItemGenerateProperties {
             return this;
         }
 
-        public Builder setCount(Function<Player, String> count) {
+        public Builder setCount(Function<@Nullable Player, String> count) {
             this.count = count;
             return this;
         }
@@ -119,7 +138,7 @@ public class ItemGenerateProperties {
             return this;
         }
 
-        public Builder setCustomModelData(Function<Player, String> customModelData) {
+        public Builder setCustomModelData(Function<@Nullable Player, String> customModelData) {
             this.customModelData = customModelData;
             return this;
         }
@@ -129,7 +148,7 @@ public class ItemGenerateProperties {
             return this;
         }
 
-        public Builder setLore(Function<Player, List<String>> lore) {
+        public Builder setLore(Function<@Nullable Player, List<String>> lore) {
             this.lore = lore;
             return this;
         }
@@ -139,18 +158,28 @@ public class ItemGenerateProperties {
             return this;
         }
 
-        public Builder setNbt(Function<Player, String> nbt) {
-            this.nbt = nbt;
+        public Builder setEnchantments(Function<@Nullable Player, Map<Enchantment, Integer>> enchantments) {
+            this.enchantments = enchantments;
             return this;
         }
 
-        public Builder setNbt(String nbt) {
-            this.nbt = p -> nbt;
+        public Builder setEnchantments(Map<Enchantment, Integer> enchantments) {
+            this.enchantments = p -> enchantments;
+            return this;
+        }
+
+        public Builder setDamage(Function<@Nullable Player, String> damage) {
+            this.damage = damage;
+            return this;
+        }
+
+        public Builder setDamage(String damage) {
+            this.damage = p -> damage;
             return this;
         }
 
         public ItemGenerateProperties build() {
-            return new ItemGenerateProperties(material, name, lore, count, customModelData, nbt);
+            return new ItemGenerateProperties(material, name, lore, count, customModelData, enchantments, damage);
         }
     }
 }
