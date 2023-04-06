@@ -2,9 +2,12 @@ package ru.whitebeef.beeflibrary.utils;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.apache.commons.lang3.RandomUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
@@ -49,6 +52,17 @@ public class ItemUtils {
     public static ItemStack parseItemStack(ConfigurationSection section) {
         ItemStack itemStack = new ItemStack(Material.getMaterial(section.getString("material").toUpperCase()));
 
+        if (section.isInt("count")) {
+            itemStack.setAmount(section.getInt("count"));
+        }
+        try {
+            if (section.isString("count")) {
+                String[] arr = section.getString("count").split("\\.\\.");
+                itemStack.setAmount(RandomUtils.nextInt(Integer.parseInt(arr[0]), Integer.parseInt(arr[1])));
+            }
+        } catch (NumberFormatException ignored) {
+        }
+
         ItemMeta meta = itemStack.getItemMeta();
 
         if (section.isString("name")) {
@@ -67,6 +81,22 @@ public class ItemUtils {
             if (meta instanceof SkullMeta skullMeta) {
                 skullMeta.setOwningPlayer(Bukkit.getOfflinePlayer(section.getString("skullOwner")));
             }
+        }
+
+        if (section.isConfigurationSection("enchantments")) {
+            for (String enchantmentString : section.getConfigurationSection("enchantments").getKeys(false)) {
+                Enchantment enchantment = Enchantment.getByKey(NamespacedKey.fromString(enchantmentString));
+                if (enchantment == null) {
+                    continue;
+                }
+                if (section.isInt("enchantments." + enchantmentString + ".level")) {
+                    meta.addEnchant(enchantment, section.getInt("enchantments." + enchantmentString + ".level"), true);
+                } else {
+                    meta.addEnchant(enchantment, enchantment.getStartLevel(), true);
+                }
+
+            }
+
         }
 
         itemStack.setItemMeta(meta);
