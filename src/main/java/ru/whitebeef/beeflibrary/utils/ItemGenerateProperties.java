@@ -1,5 +1,6 @@
 package ru.whitebeef.beeflibrary.utils;
 
+import net.kyori.adventure.text.format.TextDecoration;
 import org.apache.commons.lang3.RandomUtils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -11,6 +12,7 @@ import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import ru.whitebeef.beeflibrary.chat.MessageFormatter;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -18,7 +20,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
+//TODO: add nbt, flags and attributes
 public class ItemGenerateProperties {
 
     public static Builder builder() {
@@ -100,12 +104,12 @@ public class ItemGenerateProperties {
 
             String name = this.name.apply(player);
             if (name != null && !name.isEmpty()) {
-                meta.setDisplayName(name);
+                meta.displayName(MessageFormatter.of(name).toComponent(player).decoration(TextDecoration.ITALIC, false));
             }
 
             List<String> lore = this.lore.apply(player);
             if (lore != null && !lore.isEmpty()) {
-                meta.setLore(lore);
+                meta.lore(lore.stream().map(line -> MessageFormatter.of(line).toComponent(player).decoration(TextDecoration.ITALIC, false)).collect(Collectors.toList()));
             }
 
             Integer customModelData = getInt(this.customModelData.apply(player));
@@ -127,6 +131,8 @@ public class ItemGenerateProperties {
 
             itemStack.setItemMeta(meta);
         }
+
+        ItemUtils.getItemStack(player, itemStack);
 
         return itemStack;
     }

@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -22,6 +23,33 @@ public class InventoryUtils {
             }
         }
         return true;
+    }
+    public static int addAsMaxAsPossible(@NotNull Inventory inventory,
+                                         int slot, @NotNull ItemStack toAdd, int limit) {
+        ItemStack base = inventory.getItem(slot);
+        if (base != null) {
+            if (!base.isSimilar(toAdd)) {
+                return 0;
+            }
+
+            int itemStackAmount = base.getAmount();
+            if (itemStackAmount >= 64) {
+                return 0;
+            }
+
+            int canMaxAddAmount = 64 - itemStackAmount;
+            int amountToAdd = Math.min(limit, Math.min(toAdd.getAmount(), canMaxAddAmount));
+            base.setAmount(Math.min(64, base.getAmount() + amountToAdd));
+            return amountToAdd;
+        } else {
+            int maxAmount = Math.min(limit, Math.min(toAdd.getAmount(), toAdd.getMaxStackSize()));
+
+            ItemStack outItem = toAdd.clone();
+            outItem.setAmount(maxAmount);
+            inventory.setItem(slot, outItem);
+
+            return maxAmount;
+        }
     }
 
 }

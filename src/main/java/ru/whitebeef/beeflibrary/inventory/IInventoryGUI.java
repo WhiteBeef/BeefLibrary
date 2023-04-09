@@ -1,5 +1,6 @@
 package ru.whitebeef.beeflibrary.inventory;
 
+import it.unimi.dsi.fastutil.Pair;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -9,6 +10,7 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.whitebeef.beeflibrary.inventory.impl.InventoryGUI;
+import ru.whitebeef.beeflibrary.utils.ItemGenerateProperties;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,10 +18,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
-public interface IInventoryGUI extends ClickableInventory, RenameableInventory {
+public interface IInventoryGUI extends ClickableInventory {
 
     static Builder builder(String namespace, int size) {
         return new InventoryGUI.Builder(namespace, size);
@@ -33,23 +37,17 @@ public interface IInventoryGUI extends ClickableInventory, RenameableInventory {
 
     int getSize();
 
-    void setItem(int slot, @Nullable ItemStack item);
+    void setItem(int slot, @Nullable ItemGenerateProperties item);
 
-    boolean testPredicate(@NotNull Player player, @NotNull ItemStack item, int slot);
+    boolean testPutPredicate(@NotNull Player player, @NotNull ItemStack item, int slot);
 
     @Nullable ItemStack getItem(int slot);
 
-    HashMap<Integer, ItemStack> addItem(@Nullable ItemStack itemStack);
+    @Nullable ItemStack getItem(int slot, Player player);
 
     void open(@NotNull Player player);
 
     @NotNull Set<@NotNull Player> getOpenedPlayers();
-
-    void setStorageContents(@Nullable ItemStack @NotNull [] items);
-
-    List<String> getCommands(int slot);
-
-    @Nullable ItemStack @NotNull [] getStorageContents();
 
     void close(Player player);
 
@@ -61,28 +59,24 @@ public interface IInventoryGUI extends ClickableInventory, RenameableInventory {
 
     boolean isSlotClosed(int slot);
 
-    @NotNull List<@NotNull String> getCommandsOnClose();
-
     void closeSlot(int slot);
 
     void openSlot(int slot);
 
-    void setCommandsOnClose(@NotNull List<@NotNull String> commands);
-
-    @NotNull Inventory getInventory();
+    void setConsumersOnClose(@NotNull List<@NotNull BiConsumer<@NotNull IInventoryGUI, @NotNull Player>> commands);
 
     @NotNull Inventory getInventory(Player player);
 
     abstract class Builder {
 
         protected Set<Integer> closedSlots = new HashSet<>();
-        protected List<String> commandsOnClose = new ArrayList<>();
         protected String namespace;
         protected int size;
         protected String name;
-        protected Map<Integer, List<BiPredicate<Player, ItemStack>>> predicates = new HashMap<>();
-        protected Map<Integer, List<String>> commands = new HashMap<>();
-        protected ItemStack[] items;
+        protected Map<Integer, List<Pair<BiPredicate<Player, ItemStack>, BiConsumer<Player, ItemStack>>>> putPredicates = new HashMap<>();
+        protected Map<Integer, List<Pair<@NotNull Predicate<@NotNull Player>, @NotNull BiConsumer<IInventoryGUI, Player>>>> clickConsumers = new HashMap<>();
+        protected List<BiConsumer<IInventoryGUI, Player>> consumersOnClose = new ArrayList<>();
+        protected Map<Integer, List<Pair<Predicate<Player>, ItemGenerateProperties>>> items = new HashMap<>();
 
 
         public Builder(@NotNull String namespace, int size) {
@@ -97,7 +91,6 @@ public interface IInventoryGUI extends ClickableInventory, RenameableInventory {
                 size = 54;
             }
             this.size = size;
-            items = new ItemStack[size];
             IntStream.range(0, size).forEach(closedSlots::add);
         }
 
@@ -105,11 +98,19 @@ public interface IInventoryGUI extends ClickableInventory, RenameableInventory {
             return namespace;
         }
 
-        public Builder setItem(int slot, @NotNull ItemStack item) {
+        public Builder setItem(int slot, @NotNull ItemGenerateProperties item) {
             if (slot < 0 || slot >= size) {
                 throw new IllegalArgumentException("Slot " + slot + " is not in range [0.." + (size - 1) + "]");
             }
-            items[slot] = item;
+            items.computeIfAbsent(slot, k -> new ArrayList<>()).add(Pair.of(player -> true, item));
+            return this;
+        }
+
+        public Builder setItem(int slot, Predicate<Player> predicate, @NotNull ItemGenerateProperties item) {
+            if (slot < 0 || slot >= size) {
+                throw new IllegalArgumentException("Slot " + slot + " is not in range [0.." + (size - 1) + "]");
+            }
+            items.computeIfAbsent(slot, k -> new ArrayList<>()).add(Pair.of(predicate, item));
             return this;
         }
 
@@ -118,26 +119,27 @@ public interface IInventoryGUI extends ClickableInventory, RenameableInventory {
             return this;
         }
 
-        public Builder addPredicate(int slot, @NotNull BiPredicate<@NotNull Player, @Nullable ItemStack> predicate) {
-            this.predicates.computeIfAbsent(slot, k -> new ArrayList<>()).add(predicate);
+        public Builder addPutPredicate(int slot, @NotNull BiPredicate<@NotNull Player, @Nullable ItemStack> predicate) {
+            this.putPredicates.computeIfAbsent(slot, k -> new ArrayList<>()).add(Pair.of(predicate, (player, itemStack) -> {
+            }));
             return this;
         }
 
-        public Builder setStorageContents(@Nullable ItemStack @NotNull [] items) {
-            if (this.size != items.length) {
-                throw new IllegalArgumentException("Size of items array (" + items.length + ") not equals InventoryGUI size(" + this.size + ") ");
-            }
-            this.items = items;
+        public Builder addPutPredicate(int slot, @NotNull BiPredicate<@NotNull Player, @Nullable ItemStack> predicate,
+                                       @NotNull BiConsumer<@NotNull Player, @Nullable ItemStack> elseConsumer) {
+            this.putPredicates.computeIfAbsent(slot, k -> new ArrayList<>()).add(Pair.of(predicate, elseConsumer));
             return this;
         }
 
-        public Builder setCommand(int slot, @NotNull String command) {
-            this.commands.computeIfAbsent(slot, k -> new ArrayList<>()).add(command);
+        public Builder addClickPredicate(int slot, @NotNull Predicate<@NotNull Player> predicate) {
+            this.clickConsumers.computeIfAbsent(slot, k -> new ArrayList<>()).add(Pair.of(predicate, ((inventoryGUI, player) -> {
+            })));
             return this;
         }
 
-        public Builder setCommands(int slot, @NotNull List<@NotNull String> commands) {
-            this.commands.computeIfAbsent(slot, k -> new ArrayList<>()).addAll(commands);
+        public Builder addClickPredicate(int slot, @NotNull Predicate<@NotNull Player> predicate,
+                                         @NotNull BiConsumer<@NotNull IInventoryGUI, @NotNull Player> consumer) {
+            this.clickConsumers.computeIfAbsent(slot, k -> new ArrayList<>()).add(Pair.of(predicate, consumer));
             return this;
         }
 
@@ -165,8 +167,18 @@ public interface IInventoryGUI extends ClickableInventory, RenameableInventory {
             return this;
         }
 
-        public Builder addCloseCommands(List<String> commands) {
-            commandsOnClose.addAll(commands);
+        public Builder addCloseCommands(List<BiConsumer<IInventoryGUI, Player>> consumers) {
+            consumersOnClose.addAll(consumers);
+            return this;
+        }
+
+        public Builder addClickConsumer(int slot, BiConsumer<IInventoryGUI, Player> consumer) {
+            clickConsumers.computeIfAbsent(slot, k -> new ArrayList<>()).add(Pair.of(player -> true, consumer));
+            return this;
+        }
+
+        public Builder addClickConsumer(int slot, Predicate<Player> predicate, BiConsumer<IInventoryGUI, Player> consumer) {
+            clickConsumers.computeIfAbsent(slot, k -> new ArrayList<>()).add(Pair.of(predicate, consumer));
             return this;
         }
 

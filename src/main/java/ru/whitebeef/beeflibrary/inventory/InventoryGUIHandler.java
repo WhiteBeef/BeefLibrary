@@ -6,6 +6,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import ru.whitebeef.beeflibrary.utils.InventoryUtils;
 
 public class InventoryGUIHandler implements Listener {
 
@@ -25,7 +26,11 @@ public class InventoryGUIHandler implements Listener {
         }
 
         if (event.isShiftClick()) {
-            inventoryGUI.addItem(event.getCurrentItem());
+            event.setCancelled(true);
+            for (int i = 0; i < inventoryGUI.getSize(); i++) {
+                event.getCurrentItem().setAmount(event.getCurrentItem().getAmount()
+                        - InventoryUtils.addAsMaxAsPossible(event.getInventory(), i, event.getCurrentItem(), 64));
+            }
         }
     }
 

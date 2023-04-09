@@ -103,7 +103,8 @@ public class ItemUtils {
         return itemStack;
     }
 
-    public static ItemStack getItemStack(Player player, ItemStack itemStack) {
+    @Nullable
+    public static ItemStack getItemStack(@Nullable Player player, @Nullable ItemStack itemStack) {
         if (itemStack == null) {
             return null;
         }

@@ -7,13 +7,14 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import ru.whitebeef.beeflibrary.utils.ItemUtils;
+import ru.whitebeef.beeflibrary.utils.ItemGenerateProperties;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiConsumer;
 
 public class InventoryGUIManager {
     public static InventoryGUIManager instance;
@@ -93,14 +94,53 @@ public class InventoryGUIManager {
 
         builder.setName(section.getString("name"));
         for (String slotStr : section.getConfigurationSection("slots").getKeys(false)) {
+            ConfigurationSection slotSection = section.getConfigurationSection("slots" + "." + slotStr);
             int slot = Integer.parseInt(slotStr);
-            builder.setItem(slot, ItemUtils.parseItemStack(section.getConfigurationSection("slots" + "." + slotStr)));
-            builder.setCommands(slot, section.getStringList("slots" + "." + slotStr + ".commands"));
+            if (slotSection.isString("permission")) {
+                String permission = slotSection.getString("permission");
+
+                if (slotSection.isConfigurationSection("hasPermission")) {
+                    if (slotSection.isList("hasPermission.commands")) {
+                        slotSection.getStringList("hasPermission.commands").forEach(command ->
+                                builder.addClickConsumer(slot, (player) -> player.hasPermission(permission), (inventoryGUI, player) -> {
+                                    CustomInventoryGUICommand.getInstance().runCommand(inventoryGUI, player, command);
+                                }));
+                    }
+                }
+
+                if (slotSection.isConfigurationSection("noPermission")) {
+                    if (slotSection.isList("noPermission.commands")) {
+                        slotSection.getStringList("noPermission.commands").forEach(command ->
+                                builder.addClickConsumer(slot, (player) -> !player.hasPermission(permission), (inventoryGUI, player) -> {
+                                    CustomInventoryGUICommand.getInstance().runCommand(inventoryGUI, player, command);
+                                }));
+                    }
+                }
+
+                builder.setItem(slot, player -> player.hasPermission(permission), ItemGenerateProperties.of(slotSection.getConfigurationSection("hasPermission")));
+                builder.setItem(slot, player -> !player.hasPermission(permission), ItemGenerateProperties.of(slotSection.getConfigurationSection("noPermission")));
+
+            } else {
+                builder.setItem(slot, ItemGenerateProperties.of(slotSection));
+                if (section.isList("slots" + "." + slotStr + ".commands")) {
+                    section.getStringList("slots" + "." + slotStr + ".commands").forEach(command ->
+                            builder.addClickConsumer(slot, (inventoryGUI, player) -> CustomInventoryGUICommand.getInstance().runCommand(inventoryGUI, player, command)));
+                }
+            }
+
         }
 
-        builder.addCloseCommands(section.getStringList("commandsOnClose"));
+        List<BiConsumer<IInventoryGUI, Player>> closeConsumers = new ArrayList<>();
+
+        if (section.isList("commandsOnClose")) {
+            section.getStringList("commandsOnClose").forEach(command -> closeConsumers.add((inventoryGUI, player) ->
+                    CustomInventoryGUICommand.getInstance().runCommand(inventoryGUI, player, command)));
+        }
+
+        builder.addCloseCommands(closeConsumers);
 
         registerTemplate(plugin, builder);
+
     }
 
     public void loadInventories(Plugin plugin, String path) {
