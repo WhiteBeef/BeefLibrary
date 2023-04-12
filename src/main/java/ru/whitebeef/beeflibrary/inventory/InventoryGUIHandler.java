@@ -27,9 +27,11 @@ public class InventoryGUIHandler implements Listener {
 
         if (event.isShiftClick()) {
             event.setCancelled(true);
-            for (int i = 0; i < inventoryGUI.getSize(); i++) {
-                event.getCurrentItem().setAmount(event.getCurrentItem().getAmount()
-                        - InventoryUtils.addAsMaxAsPossible(event.getInventory(), i, event.getCurrentItem(), 64));
+            for (int slot = 0; slot < inventoryGUI.getSize(); slot++) {
+                if (!inventoryGUI.isSlotClosed(slot)) {
+                    event.getCurrentItem().setAmount(event.getCurrentItem().getAmount()
+                            - InventoryUtils.addAsMaxAsPossible(event.getInventory(), slot, event.getCurrentItem(), 64));
+                }
             }
         }
     }

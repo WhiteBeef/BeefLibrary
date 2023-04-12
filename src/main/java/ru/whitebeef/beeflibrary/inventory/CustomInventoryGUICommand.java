@@ -26,6 +26,7 @@ public class CustomInventoryGUICommand {
 
 
     public boolean registerCommand(String command, TriConsumer<IInventoryGUI, Player, String> consumer) {
+        command = command.toLowerCase();
         if (isCustomCommand(command)) {
             return false;
         }
@@ -38,8 +39,9 @@ public class CustomInventoryGUICommand {
     }
 
     public void runCommand(IInventoryGUI inventoryGUI, Player player, String command) {
-        ScheduleUtils.runTask(() -> customCommands.getOrDefault(command.toLowerCase(),
-                (i, p, s) -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), BeefLibrary.getInstance().isPlaceholderAPIHooked() ? PlaceholderAPI.setPlaceholders(player, s) : s))
+        String cmd = command.toLowerCase().split(" ")[0];
+        ScheduleUtils.runTask(() -> customCommands.getOrDefault(cmd,
+                        (i, p, s) -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), BeefLibrary.getInstance().isPlaceholderAPIHooked() ? PlaceholderAPI.setPlaceholders(player, s) : s))
                 .accept(inventoryGUI, player, command));
     }
 }

@@ -129,8 +129,8 @@ public final class BeefLibrary extends JavaPlugin {
         }));
         CustomInventoryGUICommand.getInstance().registerCommand("clear", ((inventoryGUI, player, s) ->
                 InventoryGUIManager.getInstance().openTemplate(player, inventoryGUI.getNamespace())));
-        CustomInventoryGUICommand.getInstance().registerCommand("open", ((inventoryGUI, player, s) ->
-                InventoryGUIManager.getInstance().openTemplate(player, s.replace("openInv ", ""))));
+        CustomInventoryGUICommand.getInstance().registerCommand("openinv", ((inventoryGUI, player, s) ->
+                InventoryGUIManager.getInstance().openTemplate(player, s.replace("openinv ", ""))));
     }
 
 }
