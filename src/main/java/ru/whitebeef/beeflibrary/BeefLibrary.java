@@ -4,10 +4,12 @@ import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import redis.clients.jedis.JedisPooled;
 import ru.whitebeef.beeflibrary.commands.AbstractCommand;
 import ru.whitebeef.beeflibrary.commands.SimpleCommand;
 import ru.whitebeef.beeflibrary.commands.impl.inventorygui.OpenSubCommand;
@@ -30,6 +32,8 @@ public final class BeefLibrary extends JavaPlugin {
     private static BeefLibrary instance;
     private boolean placeholderAPIHooked = false;
 
+    private JedisPooled redis;
+
     public static BeefLibrary getInstance() {
         return instance;
     }
@@ -47,6 +51,17 @@ public final class BeefLibrary extends JavaPlugin {
         new InventoryGUIManager();
         registerCustomGUICommands();
         registerCommands();
+        loadRedis();
+
+    }
+
+    private void loadRedis() {
+        FileConfiguration config = getConfig();
+        redis = new JedisPooled(config.getString("redis.host"), config.getInt("redis.port"), config.getString("redis.user"), config.getString("redis.password"));
+    }
+
+    public static JedisPooled getRedis() {
+        return instance.redis;
     }
 
     private void registerCommands() {

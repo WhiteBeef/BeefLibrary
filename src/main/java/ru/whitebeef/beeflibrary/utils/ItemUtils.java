@@ -104,7 +104,7 @@ public class ItemUtils {
     }
 
     @Nullable
-    public static ItemStack getItemStack(@Nullable Player player, @Nullable ItemStack itemStack) {
+    public static ItemStack getItem(@Nullable Player player, @Nullable ItemStack itemStack) {
         if (itemStack == null) {
             return null;
         }
