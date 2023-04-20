@@ -216,6 +216,11 @@ public class ItemGenerateProperties {
             return this;
         }
 
+        public Builder setDescription(Function<@Nullable Player, List<String>> description) {
+            this.lore = description;
+            return this;
+        }
+
         public Builder setEnchantments(Function<@Nullable Player, Map<Enchantment, Integer>> enchantments) {
             this.enchantments = enchantments;
             return this;

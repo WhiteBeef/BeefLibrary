@@ -5,6 +5,7 @@ messages:
   player_not_found: "&cИгрок %player% не найден!"
   inventorygui_not_found: "Иневнтарь %namespace% не найден!"
 redis:
+  enable: true
   host: "172.18.0.1"
   port: 6379
   user: "whitebeef"
