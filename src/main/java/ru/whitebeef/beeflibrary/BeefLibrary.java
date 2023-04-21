@@ -4,10 +4,12 @@ import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import redis.clients.jedis.JedisPooled;
 import ru.whitebeef.beeflibrary.commands.AbstractCommand;
 import ru.whitebeef.beeflibrary.commands.SimpleCommand;
 import ru.whitebeef.beeflibrary.commands.impl.inventorygui.OpenSubCommand;
@@ -30,23 +32,61 @@ public final class BeefLibrary extends JavaPlugin {
     private static BeefLibrary instance;
     private boolean placeholderAPIHooked = false;
 
+    private JedisPooled jedis;
+
     public static BeefLibrary getInstance() {
         return instance;
     }
 
     @Override
     public void onEnable() {
-        instance = this;
+        BeefLibrary.instance = this;
 
         loadConfig(this);
 
         tryHookPlaceholderAPI();
-        registerListeners(this, new PluginHandler(), new OldInventoryGUIHandler(), new InventoryGUIHandler());
+
+        registerListeners(this, new OldInventoryGUIHandler(), new InventoryGUIHandler(), new PluginHandler());
+        PAPIUtils.unregisterAllPlaceholders();
 
         new OldInventoryGUIManager();
         new InventoryGUIManager();
         registerCustomGUICommands();
         registerCommands();
+
+        loadRedis();
+
+        for (Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
+            if (!plugin.getDescription().getDepend().contains("BeefLibrary")) {
+                continue;
+            }
+            Bukkit.getPluginManager().enablePlugin(plugin);
+        }
+
+    }
+
+
+    private void loadRedis() {
+        FileConfiguration config = getConfig();
+        if (config.getBoolean("redis.enable")) {
+            jedis = new JedisPooled(config.getString("redis.host"), config.getInt("redis.port"), config.getString("redis.user"), config.getString("redis.password"));
+        }
+    }
+
+    public static JedisPooled getJedis() {
+        return instance.jedis;
+    }
+
+    public static void jedisSet(Plugin plugin, String key, String value) {
+        getJedis().set(plugin.getName() + ":" + key, value);
+    }
+
+    public static String jedisGet(Plugin plugin, String key) {
+        return getJedis().get(plugin.getName() + ":" + key);
+    }
+
+    public static void jedisDel(Plugin plugin, String key) {
+        getJedis().del(plugin.getName() + ":" + key);
     }
 
     private void registerCommands() {
@@ -61,8 +101,16 @@ public final class BeefLibrary extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        for (Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
+            if (!plugin.getDescription().getDepend().contains("BeefLibrary")) {
+                continue;
+            }
+            Bukkit.getPluginManager().disablePlugin(plugin);
+        }
+
         InventoryGUIManager.getInstance().closeAllInventories();
         AbstractCommand.unregisterAllCommands(this);
+        PAPIUtils.unregisterAllPlaceholders();
     }
 
     public void tryHookPlaceholderAPI() {
@@ -84,7 +132,20 @@ public final class BeefLibrary extends JavaPlugin {
     public boolean registerPlaceholders(PlaceholderExpansion... expansions) {
         if (isPlaceholderAPIHooked()) {
             for (PlaceholderExpansion expansion : expansions) {
-                expansion.register();
+                if (expansion != null) {
+                    expansion.register();
+                }
+            }
+        }
+        return isPlaceholderAPIHooked();
+    }
+
+    public boolean unregisterPlaceholders(PlaceholderExpansion... expansions) {
+        if (isPlaceholderAPIHooked()) {
+            for (PlaceholderExpansion expansion : expansions) {
+                if (expansion != null) {
+                    expansion.unregister();
+                }
             }
         }
         return isPlaceholderAPIHooked();

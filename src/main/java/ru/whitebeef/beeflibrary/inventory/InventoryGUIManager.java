@@ -145,6 +145,9 @@ public class InventoryGUIManager {
 
     public void loadInventories(Plugin plugin, String path) {
         FileConfiguration cfg = plugin.getConfig();
+        if (!cfg.isConfigurationSection(path)) {
+            return;
+        }
         for (String inventoryName : cfg.getConfigurationSection(path).getKeys(false)) {
             try {
                 loadInventory(plugin, cfg.getConfigurationSection(path + "." + inventoryName));

@@ -16,6 +16,7 @@ import ru.whitebeef.beeflibrary.chat.MessageFormatter;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -23,8 +24,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PAPIUtils {
+
     private static final TextReplacementConfig REMOVE_PLACEHOLDERS = TextReplacementConfig.builder().match("%(?!message\\b)[A-z0-9_]+%").replacement("").build();
-    private static final Map<String, Function<CommandSender, Component>> registeredPlaceholders = new HashMap<>();
+    private static Map<String, Function<CommandSender, Component>> registeredPlaceholders = new HashMap<>();
 
     /**
      * Плейсхолдер, который будет зарегистрирован будет иметь формат %pluginname_placeholder%
@@ -34,21 +36,30 @@ public class PAPIUtils {
      * @param function    Функцуия, в которую будет пердаваться CommandSender, для которого будет заменяться плейсхолдер, возвращаться должна компонента
      */
     public static void registerPlaceholder(@Nullable Plugin plugin, @NotNull String placeholder, @NotNull Function<CommandSender, Component> function) {
+        if (placeholder.isEmpty()) {
+            throw new IllegalArgumentException("Placeholder must be not empty!");
+        }
+
         String toRegister;
         if (plugin != null) {
             toRegister = "%" + plugin.getName().toLowerCase() + "_" + placeholder + "%";
         } else {
             toRegister = "%" + placeholder + "%";
         }
-        if (placeholder.isEmpty()) {
-            throw new IllegalArgumentException("Placeholder must be not empty!");
-        }
-        if (!registeredPlaceholders.containsKey(toRegister)) {
-            registeredPlaceholders.put(toRegister, function);
-        } else {
-            throw new IllegalArgumentException("Placeholder " + toRegister + " already registered!");
-        }
+
+        registeredPlaceholders.put(toRegister, function);
+
     }
+
+    public static void unregisterPlaceholders(Plugin plugin) {
+        List<String> toUnregister = registeredPlaceholders.keySet().stream().filter(s -> s.startsWith("%" + plugin.getName().toLowerCase() + "_")).toList();
+        toUnregister.forEach(registeredPlaceholders::remove);
+    }
+
+    public static void unregisterAllPlaceholders() {
+        registeredPlaceholders = new HashMap<>();
+    }
+
 
     public static boolean isRegisteredPlaceholder(String placeholder) {
         return registeredPlaceholders.containsKey(placeholder);

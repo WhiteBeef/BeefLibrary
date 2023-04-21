@@ -35,15 +35,15 @@ public class InventoryGUI implements IInventoryGUI {
         return new Builder(namespace, size);
     }
 
-    private final Set<Player> openedPlayers = new HashSet<>();
-    private final String namespace;
-    private final int size;
-    private final String name;
-    private final Map<Integer, List<Pair<@NotNull BiPredicate<@NotNull Player, @Nullable ItemStack>, @NotNull BiConsumer<@NotNull Player, @Nullable ItemStack>>>> putPredicates;
-    private final Map<Integer, List<Pair<@NotNull Predicate<@NotNull Player>, @NotNull BiConsumer<IInventoryGUI, Player>>>> clickConsumers;
-    private List<BiConsumer<IInventoryGUI, Player>> consumersOnClose;
-    private final Set<Integer> closedSlots;
-    private Map<Integer, List<Pair<Predicate<Player>, ItemGenerateProperties>>> items;
+    protected final Set<Player> openedPlayers = new HashSet<>();
+    protected final String namespace;
+    protected final int size;
+    protected final String name;
+    protected final Map<Integer, List<Pair<@NotNull BiPredicate<@NotNull Player, @Nullable ItemStack>, @NotNull BiConsumer<@NotNull Player, @Nullable ItemStack>>>> putPredicates;
+    protected final Map<Integer, List<Pair<@NotNull Predicate<@NotNull Player>, @NotNull BiConsumer<IInventoryGUI, Player>>>> clickConsumers;
+    protected List<BiConsumer<IInventoryGUI, Player>> consumersOnClose;
+    protected final Set<Integer> closedSlots;
+    protected Map<Integer, List<Pair<Predicate<Player>, ItemGenerateProperties>>> items;
 
     public InventoryGUI(@NotNull String namespace, int size, @NotNull String name,
                         @NotNull Map<Integer, List<Pair<@NotNull BiPredicate<@NotNull Player, @Nullable ItemStack>, @NotNull BiConsumer<@NotNull Player, @Nullable ItemStack>>>> putPredicates,

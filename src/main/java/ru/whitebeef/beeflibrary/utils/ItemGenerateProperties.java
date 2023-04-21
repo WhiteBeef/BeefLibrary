@@ -29,6 +29,7 @@ public class ItemGenerateProperties {
         return new Builder();
     }
 
+
     public static ItemGenerateProperties of(ConfigurationSection section) {
         Builder builder = new Builder();
 
@@ -132,7 +133,7 @@ public class ItemGenerateProperties {
             itemStack.setItemMeta(meta);
         }
 
-        ItemUtils.getItemStack(player, itemStack);
+        ItemUtils.getItem(player, itemStack);
 
         return itemStack;
     }
@@ -212,6 +213,11 @@ public class ItemGenerateProperties {
 
         public Builder setDescription(List<String> description) {
             this.lore = p -> description;
+            return this;
+        }
+
+        public Builder setDescription(Function<@Nullable Player, List<String>> description) {
+            this.lore = description;
             return this;
         }
 
