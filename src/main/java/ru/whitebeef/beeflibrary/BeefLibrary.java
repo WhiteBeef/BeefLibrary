@@ -20,11 +20,14 @@ import ru.whitebeef.beeflibrary.inventory.InventoryGUIHandler;
 import ru.whitebeef.beeflibrary.inventory.InventoryGUIManager;
 import ru.whitebeef.beeflibrary.inventory.deprecated.OldInventoryGUIHandler;
 import ru.whitebeef.beeflibrary.inventory.deprecated.OldInventoryGUIManager;
+import ru.whitebeef.beeflibrary.inventory.impl.UpdatableInventoryGUI;
 import ru.whitebeef.beeflibrary.placeholderapi.PAPIUtils;
 import ru.whitebeef.beeflibrary.utils.ItemUtils;
 import ru.whitebeef.beeflibrary.utils.SoundType;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 
 public final class BeefLibrary extends JavaPlugin {
@@ -79,6 +82,18 @@ public final class BeefLibrary extends JavaPlugin {
 
     public static void jedisSet(Plugin plugin, String key, String value) {
         getJedis().set(plugin.getName() + ":" + key, value);
+    }
+
+    public static void jedisSetCollection(Plugin plugin, String key, Set<String> set) {
+        key = plugin.getName() + ":" + key;
+        int i = 0;
+        for (String value : set) {
+            getJedis().lset(key, i++, value);
+        }
+    }
+
+    public static List<String> jedisGetCollection(Plugin plugin, String key) {
+        return getJedis().lrange(plugin.getName() + ":" + key, 0, getJedis().llen(key));
     }
 
     public static String jedisGet(Plugin plugin, String key) {
@@ -192,6 +207,12 @@ public final class BeefLibrary extends JavaPlugin {
                 InventoryGUIManager.getInstance().openTemplate(player, inventoryGUI.getNamespace())));
         CustomInventoryGUICommand.getInstance().registerCommand("openinv", ((inventoryGUI, player, s) ->
                 InventoryGUIManager.getInstance().openTemplate(player, s.replace("openinv ", ""))));
+        CustomInventoryGUICommand.getInstance().registerCommand("update", ((inventoryGUI, player, s) -> {
+            if (inventoryGUI instanceof UpdatableInventoryGUI updatableInventoryGUI) {
+                updatableInventoryGUI.update();
+            }
+        }
+        ));
     }
 
 }

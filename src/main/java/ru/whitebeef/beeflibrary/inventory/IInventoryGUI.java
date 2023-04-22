@@ -131,18 +131,6 @@ public interface IInventoryGUI extends ClickableInventory {
             return this;
         }
 
-        public Builder addClickPredicate(int slot, @NotNull Predicate<@NotNull Player> predicate) {
-            this.clickConsumers.computeIfAbsent(slot, k -> new ArrayList<>()).add(Pair.of(predicate, ((inventoryGUI, player) -> {
-            })));
-            return this;
-        }
-
-        public Builder addClickPredicate(int slot, @NotNull Predicate<@NotNull Player> predicate,
-                                         @NotNull BiConsumer<@NotNull IInventoryGUI, @NotNull Player> consumer) {
-            this.clickConsumers.computeIfAbsent(slot, k -> new ArrayList<>()).add(Pair.of(predicate, consumer));
-            return this;
-        }
-
         public Builder closeSlots(int... slots) {
             for (int slot : slots) {
                 closedSlots.add(slot);

@@ -16,6 +16,10 @@ public enum StandardConsumers {
         sender.sendMessage(MessageFormatter.of(MessageType.of("beeflibrary.only_for_players")).toComponent(sender));
     }),
 
+    COOLDOWN((sender, args) -> {
+        sender.sendMessage(MessageFormatter.of(MessageType.of("beeflibrary.cooldown")).toComponent(sender));
+    }),
+
     NO_ARGS((sender, args) -> {
         sender.sendMessage(MessageFormatter.of(MessageType.of("beeflibrary.no_args")).toComponent(sender));
     });
