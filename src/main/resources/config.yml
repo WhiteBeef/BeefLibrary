@@ -1,12 +1,13 @@
 messages:
   only_for_players: "&cТолько для игроков!"
   no_args: "&cНедостаточно аргументов!"
+  cooldown: "&cСлишком часто! Попробуйте позже!"
   no_permissions: "&cНедостаточно прав!"
   player_not_found: "&cИгрок %player% не найден!"
   inventorygui_not_found: "Иневнтарь %namespace% не найден!"
 redis:
-  enable: true
-  host: "172.18.0.1"
+  enable: false
+  host: "127.0.0.1"
   port: 6379
-  user: "whitebeef"
-  password: "P@55w0rd"
+  user: "root"
+  password: "password"

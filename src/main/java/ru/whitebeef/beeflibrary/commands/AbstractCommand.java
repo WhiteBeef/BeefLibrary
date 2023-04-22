@@ -39,6 +39,7 @@ public abstract class AbstractCommand extends BukkitCommand {
         return new Builder(name, clazz);
     }
 
+    private final Map<CommandSender, Cooldown> cooldowns = new HashMap<>();
     private final String name;
     private final Map<String, AbstractCommand> subCommands;
     private final BiConsumer<CommandSender, String[]> onCommand;
@@ -46,12 +47,15 @@ public abstract class AbstractCommand extends BukkitCommand {
     private final List<Alias> aliases;
     private final int minArgsCount;
     private boolean onlyForPlayers;
+    private String cooldownSkipPermission;
+    private Cooldown.Type cooldownType;
+    private long cooldown;
 
-    protected AbstractCommand(@NotNull String name, @Nullable String permission, @Nullable String description, @Nullable String usageMessage, boolean onlyForPlayers,
-                              BiConsumer<CommandSender, String[]> onCommand,
-                              BiFunction<CommandSender, String[], List<String>> onTabComplete,
-                              Map<String, AbstractCommand> subCommands,
-                              List<Alias> aliases, int minArgsCount) {
+    public AbstractCommand(@NotNull String name, @Nullable String permission, @Nullable String description, @Nullable String usageMessage, boolean onlyForPlayers,
+                           BiConsumer<CommandSender, String[]> onCommand,
+                           BiFunction<CommandSender, String[], List<String>> onTabComplete,
+                           Map<String, AbstractCommand> subCommands,
+                           List<Alias> aliases, int minArgsCount) {
         super(name, Objects.requireNonNullElseGet(description, String::new),
                 Objects.requireNonNullElseGet(usageMessage, String::new),
                 aliases.stream().map(Alias::getName).collect(Collectors.toList()));
@@ -103,6 +107,11 @@ public abstract class AbstractCommand extends BukkitCommand {
         return subCommands.get(str.toLowerCase());
     }
 
+    public void setCooldown(Cooldown.Type type, long cooldown, String cooldownSkipPermission) {
+        this.cooldownType = type;
+        this.cooldown = cooldown;
+        this.cooldownSkipPermission = cooldownSkipPermission;
+    }
 
     protected void onCommand(CommandSender sender, String[] args) {
         StandardConsumers.NO_ARGS.getConsumer().accept(sender, args);
@@ -148,6 +157,12 @@ public abstract class AbstractCommand extends BukkitCommand {
             StandardConsumers.ONLY_FOR_PLAYERS.getConsumer().accept(sender, args);
             return true;
         }
+
+        if (cooldowns.get(sender) != null && !cooldowns.get(sender).isCooldownPassed(sender, cooldownSkipPermission)) {
+            StandardConsumers.COOLDOWN.getConsumer().accept(sender, args);
+            return true;
+        }
+
         if (currentCommand.getOnCommand() != null) {
             currentCommand.getOnCommand().accept(sender, args);
             return true;
@@ -265,6 +280,9 @@ public abstract class AbstractCommand extends BukkitCommand {
         private String usageMessage = "";
         private boolean onlyForPlayers = false;
         private int minArgsCount = 0;
+        private String cooldownSkipPermission = "";
+        private Cooldown.Type cooldownType = Cooldown.Type.MILLIS;
+        private long cooldown = 0;
 
         public Builder(String name, Class<? extends AbstractCommand> clazz) {
             this.name = name;
@@ -321,10 +339,22 @@ public abstract class AbstractCommand extends BukkitCommand {
             return this;
         }
 
+        /**
+         * @param skipPermission Empty string is no permission to skip. Nobody can't skip with that
+         */
+        public Builder setCooldown(Cooldown.Type type, long cooldown, @NotNull String skipPermission) {
+            this.cooldownType = type;
+            this.cooldown = cooldown;
+            this.cooldownSkipPermission = skipPermission;
+            return this;
+        }
+
         public AbstractCommand build() {
             try {
-                return clazz.getDeclaredConstructor(String.class, String.class, String.class, String.class, boolean.class, BiConsumer.class, BiFunction.class, Map.class, List.class, int.class)
+                AbstractCommand command = clazz.getDeclaredConstructor(String.class, String.class, String.class, String.class, boolean.class, BiConsumer.class, BiFunction.class, Map.class, List.class, int.class)
                         .newInstance(name, permission, description, usageMessage, onlyForPlayers, onCommand, onTabComplete, subCommands, aliases, minArgsCount);
+                command.setCooldown(cooldownType, cooldown, cooldownSkipPermission); // Костыль, чтобы не переписывать все остальные плагины
+                return command;
             } catch (Exception e) {
                 throw new RuntimeException();
             }

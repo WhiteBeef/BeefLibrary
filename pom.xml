@@ -16,10 +16,16 @@
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-    <url>t.me/whitebeef</url>
-
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <outputDirectory>C:\plugins\BeefPlugins\${project.name}</outputDirectory>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -34,7 +40,7 @@
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.3.0</version>
                 <configuration>
-                    <dependencyReducedPomLocation>${project.build.directory}/dependency-reduced-pom.xml
+                    <dependencyReducedPomLocation>${project.build.sourceDirectory}/dependency-reduced-pom.xml
                     </dependencyReducedPomLocation>
                     <relocations>
                         <relocation>
@@ -50,6 +56,7 @@
                             <shadedPattern>ru.whitebeef.beeflibrary.redis</shadedPattern>
                         </relocation>
                     </relocations>
+                    <outputDirectory>C:\plugins\BeefPlugins\${project.name}</outputDirectory>
                     <minimizeJar>true</minimizeJar>
                 </configuration>
 
@@ -80,6 +87,7 @@
             </resource>
         </resources>
     </build>
+    <url>t.me/whitebeef</url>
 
     <repositories>
         <repository>
