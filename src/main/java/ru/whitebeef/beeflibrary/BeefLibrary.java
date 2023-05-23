@@ -1,15 +1,15 @@
 package ru.whitebeef.beeflibrary;
 
+import com.rylinaux.plugman.PlugMan;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import redis.clients.jedis.JedisPooled;
+import ru.whitebeef.beeflibrary.chat.MessageType;
 import ru.whitebeef.beeflibrary.commands.AbstractCommand;
 import ru.whitebeef.beeflibrary.commands.SimpleCommand;
 import ru.whitebeef.beeflibrary.commands.impl.inventorygui.OpenSubCommand;
@@ -23,19 +23,18 @@ import ru.whitebeef.beeflibrary.inventory.deprecated.OldInventoryGUIManager;
 import ru.whitebeef.beeflibrary.inventory.impl.UpdatableInventoryGUI;
 import ru.whitebeef.beeflibrary.placeholderapi.PAPIUtils;
 import ru.whitebeef.beeflibrary.utils.ItemUtils;
+import ru.whitebeef.beeflibrary.utils.JedisUtils;
+import ru.whitebeef.beeflibrary.utils.ScheduleUtils;
 import ru.whitebeef.beeflibrary.utils.SoundType;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 
 public final class BeefLibrary extends JavaPlugin {
 
     private static BeefLibrary instance;
     private boolean placeholderAPIHooked = false;
-
-    private JedisPooled jedis;
+    private boolean debug = false;
 
     public static BeefLibrary getInstance() {
         return instance;
@@ -44,7 +43,6 @@ public final class BeefLibrary extends JavaPlugin {
     @Override
     public void onEnable() {
         BeefLibrary.instance = this;
-
         loadConfig(this);
 
         tryHookPlaceholderAPI();
@@ -52,57 +50,30 @@ public final class BeefLibrary extends JavaPlugin {
         registerListeners(this, new OldInventoryGUIHandler(), new InventoryGUIHandler(), new PluginHandler());
         PAPIUtils.unregisterAllPlaceholders();
 
+        MessageType.registerTypesSection(this, "messages");
+
         new OldInventoryGUIManager();
         new InventoryGUIManager();
         registerCustomGUICommands();
         registerCommands();
 
-        loadRedis();
+        new JedisUtils();
 
-        for (Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
-            if (!plugin.getDescription().getDepend().contains("BeefLibrary")) {
-                continue;
+        ScheduleUtils.runTaskLater(this, () -> {
+            if (Bukkit.getPluginManager().isPluginEnabled("PlugManX")) {
+                for (Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
+                    if (!plugin.getDescription().getDepend().contains("BeefLibrary")) {
+                        continue;
+                    }
+                    PlugMan.getInstance().getPluginUtil().reload(plugin);
+                }
             }
-            Bukkit.getPluginManager().enablePlugin(plugin);
-        }
+        }, 10L);
+
+        debug = getConfig().getBoolean("debug");
 
     }
 
-
-    private void loadRedis() {
-        FileConfiguration config = getConfig();
-        if (config.getBoolean("redis.enable")) {
-            jedis = new JedisPooled(config.getString("redis.host"), config.getInt("redis.port"), config.getString("redis.user"), config.getString("redis.password"));
-        }
-    }
-
-    public static JedisPooled getJedis() {
-        return instance.jedis;
-    }
-
-    public static void jedisSet(Plugin plugin, String key, String value) {
-        getJedis().set(plugin.getName() + ":" + key, value);
-    }
-
-    public static void jedisSetCollection(Plugin plugin, String key, Set<String> set) {
-        key = plugin.getName() + ":" + key;
-        int i = 0;
-        for (String value : set) {
-            getJedis().lset(key, i++, value);
-        }
-    }
-
-    public static List<String> jedisGetCollection(Plugin plugin, String key) {
-        return getJedis().lrange(plugin.getName() + ":" + key, 0, getJedis().llen(key));
-    }
-
-    public static String jedisGet(Plugin plugin, String key) {
-        return getJedis().get(plugin.getName() + ":" + key);
-    }
-
-    public static void jedisDel(Plugin plugin, String key) {
-        getJedis().del(plugin.getName() + ":" + key);
-    }
 
     private void registerCommands() {
         AbstractCommand.builder("inventorygui", SimpleCommand.class)
@@ -176,7 +147,8 @@ public final class BeefLibrary extends JavaPlugin {
         }
     }
 
-    public static void registerPlaceholder(Plugin plugin, String placeholder, Function<CommandSender, Component> function) {
+    public static void registerPlaceholder(Plugin plugin, String
+            placeholder, Function<CommandSender, Component> function) {
         PAPIUtils.registerPlaceholder(plugin, placeholder, function);
     }
 
@@ -191,6 +163,10 @@ public final class BeefLibrary extends JavaPlugin {
     public static void loadConfig(Plugin plugin) {
         plugin.saveDefaultConfig();
         plugin.reloadConfig();
+    }
+
+    public boolean isDebug() {
+        return debug;
     }
 
     private void registerCustomGUICommands() {
@@ -214,5 +190,4 @@ public final class BeefLibrary extends JavaPlugin {
         }
         ));
     }
-
 }

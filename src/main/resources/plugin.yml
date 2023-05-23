@@ -7,3 +7,4 @@ description: Lib plugin to whitebeef's plugins
 website: t.me/whitebeef
 softdepend:
   - PlaceholderAPI
+  - PlugManX

@@ -6,7 +6,7 @@
 
     <groupId>ru.whitebeef</groupId>
     <artifactId>BeefLibrary</artifactId>
-    <version>1.1.1</version>
+    <version>1.1.2</version>
     <packaging>jar</packaging>
 
     <name>BeefLibrary</name>
@@ -17,6 +17,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <build>
+        <finalName>${project.name}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -106,6 +107,10 @@
             <id>placeholderapi</id>
             <url>https://repo.extendedclip.com/content/repositories/placeholderapi/</url>
         </repository>
+        <repository>
+            <id>PlugMan</id>
+            <url>https://raw.githubusercontent.com/TheBlackEntity/PlugMan/repository/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -155,6 +160,13 @@
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
             <version>0.10.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.rylinaux</groupId>
+            <artifactId>PlugMan</artifactId>
+            <version>2.2.9</version>
+            <scope>system</scope>
+            <systemPath>C:/Users/white/Downloads/PlugManX.jar</systemPath>
         </dependency>
     </dependencies>
 </project>

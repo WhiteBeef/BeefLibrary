@@ -100,7 +100,7 @@ public class PAPIUtils {
 
         Set<String> toReplace = new HashSet<>();
 
-        Pattern pattern = Pattern.compile("%[\\w\\-]+%");
+        Pattern pattern = Pattern.compile("%[\\w\\-_]+%");
 
         Matcher matcher = pattern.matcher(gson);
         int index = 0;

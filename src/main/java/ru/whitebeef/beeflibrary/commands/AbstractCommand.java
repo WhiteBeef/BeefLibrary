@@ -29,10 +29,10 @@ import java.util.stream.Stream;
 
 public abstract class AbstractCommand extends BukkitCommand {
 
-    private static final List<AbstractCommand> registeredCommands = new ArrayList<>();
+    private static final Map<Plugin, List<AbstractCommand>> registeredCommands = new HashMap<>();
 
     public static void unregisterAllCommands(Plugin plugin) {
-        registeredCommands.forEach(abstractCommand -> abstractCommand.unregister(plugin));
+        registeredCommands.getOrDefault(plugin, new ArrayList<>()).forEach(abstractCommand -> abstractCommand.unregister(plugin));
     }
 
     public static Builder builder(String name, Class<? extends AbstractCommand> clazz) {
@@ -157,12 +157,12 @@ public abstract class AbstractCommand extends BukkitCommand {
             StandardConsumers.ONLY_FOR_PLAYERS.getConsumer().accept(sender, args);
             return true;
         }
-
         if (cooldowns.get(sender) != null && !cooldowns.get(sender).isCooldownPassed(sender, cooldownSkipPermission)) {
             StandardConsumers.COOLDOWN.getConsumer().accept(sender, args);
             return true;
         }
 
+        cooldowns.put(sender, new Cooldown(cooldownType, cooldown));
         if (currentCommand.getOnCommand() != null) {
             currentCommand.getOnCommand().accept(sender, args);
             return true;
@@ -242,7 +242,7 @@ public abstract class AbstractCommand extends BukkitCommand {
             bukkitCommandMap.setAccessible(true);
             CommandMap commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
             commandMap.register(plugin.getName().toLowerCase(), this);
-            registeredCommands.add(this);
+            registeredCommands.computeIfAbsent(plugin, k -> new ArrayList<>()).add(this);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -282,7 +282,7 @@ public abstract class AbstractCommand extends BukkitCommand {
         private int minArgsCount = 0;
         private String cooldownSkipPermission = "";
         private Cooldown.Type cooldownType = Cooldown.Type.MILLIS;
-        private long cooldown = 0;
+        private long cooldown = 1000;
 
         public Builder(String name, Class<? extends AbstractCommand> clazz) {
             this.name = name;
