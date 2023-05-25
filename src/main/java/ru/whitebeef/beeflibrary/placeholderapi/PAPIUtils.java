@@ -142,9 +142,7 @@ public class PAPIUtils {
         while (matcher.find(index)) {
             sb.append(text, index, matcher.start());
             String placeholder = "%" + matcher.group(2) + "%";
-            if (isRegisteredPlaceholder(placeholder)) {
-                sb.append("%").append(matcher.group(1)).append("-").append(matcher.group(2)).append("%");
-            } else {
+            if (!isRegisteredPlaceholder(placeholder)) {
                 sb.append(matcher.group(1).equals("sender") ? setPlaceholders(sender, placeholder) : setPlaceholders(recipient, placeholder));
             }
             index = matcher.end();

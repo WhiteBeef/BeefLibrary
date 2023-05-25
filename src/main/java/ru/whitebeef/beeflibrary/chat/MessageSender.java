@@ -32,7 +32,7 @@ public class MessageSender {
     }
 
     public static void sendActionBar(Player player, String str) {
-        player.sendActionBar(MessageFormatter.of(str).toComponent(player));
+        sendActionBar(player, MessageFormatter.of(str).toComponent(player));
     }
 
     public static void sendActionBar(Player player, Component str) {

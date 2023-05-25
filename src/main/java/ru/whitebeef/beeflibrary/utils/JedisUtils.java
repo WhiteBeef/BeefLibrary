@@ -44,19 +44,15 @@ public class JedisUtils {
     }
 
     public static void jedisSetObject(Plugin plugin, String key, Object value) {
-        getJedis().jsonSet(formatJedisKey(plugin, key), value);
+        getJedis().set(formatJedisKey(plugin, key), GsonUtils.parseObject(value));
     }
 
-    public static Object jedisGetObject(Plugin plugin, String key) {
-        return jedisKeyExists(plugin, key) ? getJedis().jsonGet(formatJedisKey(plugin, key)) : null;
+    public static <T> Object jedisGetObject(Plugin plugin, String key, Class<T> clazz) {
+        return jedisKeyExists(plugin, key) ? GsonUtils.parseJSON(getJedis().get(formatJedisKey(plugin, key)), clazz) : null;
     }
 
     public static void jedisSetCollection(Plugin plugin, String key, Set<String> set) {
-        key = formatJedisKey(plugin, key);
-        int i = 0;
-        for (String value : set) {
-            getJedis().lset(key, i++, value);
-        }
+        getJedis().rpush(formatJedisKey(plugin, key), set.toArray(String[]::new));
     }
 
     public static void jedisAddInCollection(Plugin plugin, String key, String value) {
@@ -75,7 +71,7 @@ public class JedisUtils {
     }
 
     public static List<String> jedisGetCollection(Plugin plugin, String key) {
-        return jedisKeyExists(plugin, key) ? getJedis().lrange(formatJedisKey(plugin, key), 0, getJedis().llen(key)) : Collections.emptyList();
+        return jedisKeyExists(plugin, key) ? getJedis().lrange(formatJedisKey(plugin, key), 0, getJedis().llen(formatJedisKey(plugin, key))) : Collections.emptyList();
     }
 
     public static boolean jedisContainsCollection(Plugin plugin, String key, String value) {
