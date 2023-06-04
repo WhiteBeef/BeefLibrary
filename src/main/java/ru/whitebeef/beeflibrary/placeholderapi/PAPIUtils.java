@@ -144,6 +144,8 @@ public class PAPIUtils {
             String placeholder = "%" + matcher.group(2) + "%";
             if (!isRegisteredPlaceholder(placeholder)) {
                 sb.append(matcher.group(1).equals("sender") ? setPlaceholders(sender, placeholder) : setPlaceholders(recipient, placeholder));
+            } else {
+                sb.append(text, index, matcher.end());
             }
             index = matcher.end();
         }
