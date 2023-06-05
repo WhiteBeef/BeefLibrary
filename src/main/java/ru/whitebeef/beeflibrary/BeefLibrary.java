@@ -34,6 +34,7 @@ public final class BeefLibrary extends JavaPlugin {
 
     private static BeefLibrary instance;
     private boolean placeholderAPIHooked = false;
+    private boolean loadWithFolia = false;
     private boolean debug = false;
 
     public static BeefLibrary getInstance() {
@@ -43,6 +44,8 @@ public final class BeefLibrary extends JavaPlugin {
     @Override
     public void onEnable() {
         BeefLibrary.instance = this;
+        tryLoadWithFolia();
+
         loadConfig(this);
 
         tryHookPlaceholderAPI();
@@ -72,6 +75,16 @@ public final class BeefLibrary extends JavaPlugin {
 
         debug = getConfig().getBoolean("debug");
 
+    }
+
+    private void tryLoadWithFolia() {
+        try {
+            loadWithFolia = getPluginMeta().isFoliaSupported();
+            if (loadWithFolia) {
+                getLogger().info("Loaded with Folia!");
+            }
+        } catch (Exception ignored) {
+        }
     }
 
 
@@ -139,6 +152,10 @@ public final class BeefLibrary extends JavaPlugin {
 
     public boolean isPlaceholderAPIHooked() {
         return placeholderAPIHooked;
+    }
+
+    public boolean isFoliaSupported() {
+        return loadWithFolia;
     }
 
     public static void registerListeners(Plugin plugin, Listener... listeners) {

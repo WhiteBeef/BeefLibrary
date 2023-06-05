@@ -6,7 +6,7 @@
 
     <groupId>ru.whitebeef</groupId>
     <artifactId>BeefLibrary</artifactId>
-    <version>1.2.0</version>
+    <version>1.2.1</version>
     <packaging>jar</packaging>
 
     <name>BeefLibrary</name>
@@ -132,12 +132,6 @@
         <dependency>
             <groupId>dev.folia</groupId>
             <artifactId>folia-api</artifactId>
-            <version>1.19.4-R0.1-SNAPSHOT</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.papermc.paper</groupId>
-            <artifactId>paper-api</artifactId>
             <version>1.19.4-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
