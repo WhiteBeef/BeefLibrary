@@ -69,7 +69,7 @@ public abstract class AbstractCommand extends BukkitCommand {
         this.minArgsCount = minArgsCount;
     }
 
-    public AbstractCommand addSubCommand(AbstractCommand abstractCommand) {
+    public final AbstractCommand addSubCommand(AbstractCommand abstractCommand) {
         subCommands.put(abstractCommand.getName(), abstractCommand);
         for (String alias : abstractCommand.getAliases()) {
             subCommands.put(alias, abstractCommand);
@@ -77,37 +77,37 @@ public abstract class AbstractCommand extends BukkitCommand {
         return this;
     }
 
-    public Collection<AbstractCommand> getSubCommands() {
+    public final Collection<AbstractCommand> getSubCommands() {
         return subCommands.values();
     }
 
-    public String getName() {
+    public final String getName() {
         return name;
     }
 
-    public boolean isOnlyForPlayers() {
+    public final boolean isOnlyForPlayers() {
         return onlyForPlayers;
     }
 
-    public int getMinArgsCount() {
+    public final int getMinArgsCount() {
         return minArgsCount;
     }
 
     @Nullable
-    public BiConsumer<CommandSender, String[]> getOnCommand() {
+    public final BiConsumer<CommandSender, String[]> getOnCommand() {
         return onCommand;
     }
 
-    public BiFunction<CommandSender, String[], List<String>> getOnTabComplete() {
+    public final BiFunction<CommandSender, String[], List<String>> getOnTabComplete() {
         return onTabComplete;
     }
 
     @Nullable
-    public AbstractCommand getSubcommand(String str) {
+    public final AbstractCommand getSubcommand(String str) {
         return subCommands.get(str.toLowerCase());
     }
 
-    public void setCooldown(Cooldown.Type type, long cooldown, String cooldownSkipPermission) {
+    public final void setCooldown(Cooldown.Type type, long cooldown, String cooldownSkipPermission) {
         this.cooldownType = type;
         this.cooldown = cooldown;
         this.cooldownSkipPermission = cooldownSkipPermission;
@@ -138,7 +138,7 @@ public abstract class AbstractCommand extends BukkitCommand {
     }
 
     @Override
-    public boolean execute(@NotNull CommandSender sender, @NotNull String commandLabel, @NotNull String[] args) {
+    public final boolean execute(@NotNull CommandSender sender, @NotNull String commandLabel, @NotNull String[] args) {
         Pair<Integer, AbstractCommand> pair = getCurrentCommand(args);
         AbstractCommand currentCommand = pair.right();
 
@@ -172,7 +172,7 @@ public abstract class AbstractCommand extends BukkitCommand {
     }
 
     @Override
-    public @NotNull List<String> tabComplete(@NotNull CommandSender sender, @NotNull String alias, @NotNull String[] args) throws IllegalArgumentException {
+    public final @NotNull List<String> tabComplete(@NotNull CommandSender sender, @NotNull String alias, @NotNull String[] args) throws IllegalArgumentException {
         if (args.length == 0) {
             return Collections.emptyList();
         }
@@ -202,7 +202,7 @@ public abstract class AbstractCommand extends BukkitCommand {
     }
 
     @Override
-    public @NotNull List<String> tabComplete(@NotNull CommandSender sender, @NotNull String alias, @NotNull String[] args, @Nullable Location location) throws IllegalArgumentException {
+    public final @NotNull List<String> tabComplete(@NotNull CommandSender sender, @NotNull String alias, @NotNull String[] args, @Nullable Location location) throws IllegalArgumentException {
         return this.tabComplete(sender, alias, args);
     }
 
