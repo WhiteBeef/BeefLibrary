@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
@@ -39,7 +40,7 @@ public abstract class AbstractCommand extends BukkitCommand {
         return new Builder(name, clazz);
     }
 
-    private final Map<CommandSender, Cooldown> cooldowns = new HashMap<>();
+    private final Map<UUID, Cooldown> cooldowns = new HashMap<>();
     private final String name;
     private final Map<String, AbstractCommand> subCommands;
     private final BiConsumer<CommandSender, String[]> onCommand;
@@ -157,12 +158,17 @@ public abstract class AbstractCommand extends BukkitCommand {
             StandardConsumers.ONLY_FOR_PLAYERS.getConsumer().accept(sender, args);
             return true;
         }
-        if (cooldowns.get(sender) != null && !cooldowns.get(sender).isCooldownPassed(sender, cooldownSkipPermission)) {
-            StandardConsumers.COOLDOWN.getConsumer().accept(sender, args);
-            return true;
+        if (sender instanceof Player player) {
+            if (cooldowns.get(player.getUniqueId()) != null &&
+                    !cooldowns.get(player.getUniqueId()).isCooldownPassed(sender, cooldownSkipPermission)) {
+                StandardConsumers.COOLDOWN.getConsumer().accept(sender, args);
+                return true;
+            }
         }
 
-        cooldowns.put(sender, new Cooldown(cooldownType, cooldown));
+        if (sender instanceof Player player) {
+            cooldowns.put(player.getUniqueId(), new Cooldown(cooldownType, cooldown));
+        }
         if (currentCommand.getOnCommand() != null) {
             currentCommand.getOnCommand().accept(sender, args);
             return true;
