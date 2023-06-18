@@ -28,7 +28,7 @@ public class UpdatableInventoryGUI extends InventoryGUI implements IUpdatableInv
 
     @Override
     public void update() {
-        for (Player player : openedPlayers) {
+        for (Player player : getOpenedPlayers()) {
             open(player);
         }
     }
@@ -37,7 +37,7 @@ public class UpdatableInventoryGUI extends InventoryGUI implements IUpdatableInv
     public void setItem(int slot, @Nullable ItemGenerateProperties item) {
         super.setItem(slot, item);
 
-        for (Player player : openedPlayers) {
+        for (Player player : getOpenedPlayers()) {
             player.getOpenInventory().getTopInventory().setItem(slot, item == null ? null : item.generate(player));
         }
     }

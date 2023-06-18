@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.Pair;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -25,17 +26,20 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class InventoryGUI implements IInventoryGUI {
     public static Builder builder(String namespace, int size) {
         return new Builder(namespace, size);
     }
 
-    protected final Set<Player> openedPlayers = new HashSet<>();
+    private final Set<UUID> openedPlayers = new HashSet<>();
     protected final String namespace;
     protected final int size;
     protected final String name;
@@ -235,21 +239,24 @@ public class InventoryGUI implements IInventoryGUI {
     @Override
     public void open(@NotNull Player player) {
         player.openInventory(getInventory(player));
-        openedPlayers.add(player);
+        openedPlayers.add(player.getUniqueId());
         InventoryGUIManager.getInstance().addOpenInventory(player, this);
     }
 
     @Override
     @NotNull
     public Set<@NotNull Player> getOpenedPlayers() {
-        return openedPlayers;
+        return openedPlayers.stream().map(Bukkit::getPlayer)
+                .filter(Objects::nonNull)
+                .filter(OfflinePlayer::isOnline)
+                .collect(Collectors.toSet());
     }
 
     @Override
     public void close(Player player) {
         player.closeInventory(InventoryCloseEvent.Reason.PLUGIN);
         InventoryGUIManager.getInstance().removeOpenInventory(player);
-        openedPlayers.remove(player);
+        openedPlayers.remove(player.getUniqueId());
     }
 
     @Override
