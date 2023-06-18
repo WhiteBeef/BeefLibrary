@@ -1,5 +1,6 @@
 package ru.whitebeef.beeflibrary.inventory;
 
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -14,6 +15,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 
 public class InventoryGUIManager {
@@ -23,7 +25,7 @@ public class InventoryGUIManager {
         return instance;
     }
 
-    private final HashMap<Player, IInventoryGUI> openInventoryGUI = new HashMap<>();
+    private final HashMap<UUID, IInventoryGUI> openInventoryGUI = new HashMap<>();
     private final HashMap<String, IInventoryGUI.Builder> inventoryTemplates = new HashMap<>();
 
     public InventoryGUIManager() {
@@ -47,7 +49,7 @@ public class InventoryGUIManager {
 
     @Nullable
     public IInventoryGUI getOpenedInventory(@NotNull Player player) {
-        return openInventoryGUI.get(player);
+        return openInventoryGUI.get(player.getUniqueId());
     }
 
     @NotNull
@@ -63,14 +65,22 @@ public class InventoryGUIManager {
     public void closeInventories(Plugin plugin) {
         for (var entry : openInventoryGUI.entrySet()) {
             if (entry.getValue().getNamespace().startsWith(plugin.getName().toLowerCase())) {
-                entry.getKey().closeInventory(InventoryCloseEvent.Reason.PLUGIN);
+                Player player = Bukkit.getPlayer(entry.getKey());
+                if (player == null) {
+                    continue;
+                }
+                player.closeInventory(InventoryCloseEvent.Reason.PLUGIN);
             }
         }
     }
 
     public void closeAllInventories() {
         for (var entry : openInventoryGUI.entrySet()) {
-            entry.getKey().closeInventory(InventoryCloseEvent.Reason.PLUGIN);
+            Player player = Bukkit.getPlayer(entry.getKey());
+            if (player == null) {
+                continue;
+            }
+            player.closeInventory(InventoryCloseEvent.Reason.PLUGIN);
         }
     }
 
@@ -180,11 +190,11 @@ public class InventoryGUIManager {
     }
 
     public void addOpenInventory(@NotNull Player player, @NotNull IInventoryGUI inventoryGUI) {
-        openInventoryGUI.put(player, inventoryGUI);
+        openInventoryGUI.put(player.getUniqueId(), inventoryGUI);
     }
 
     public void removeOpenInventory(@NotNull Player player) {
-        openInventoryGUI.remove(player);
+        openInventoryGUI.remove(player.getUniqueId());
     }
 
 }
