@@ -34,7 +34,7 @@ public final class BeefLibrary extends JavaPlugin {
 
     private static BeefLibrary instance;
     private boolean placeholderAPIHooked = false;
-    private boolean loadWithFolia = false;
+    private boolean isFolia = false;
     private boolean debug = false;
 
     public static BeefLibrary getInstance() {
@@ -77,14 +77,16 @@ public final class BeefLibrary extends JavaPlugin {
 
     }
 
+    /**
+     * Tries to load class from Folia.
+     * If it succeeds {@link BeefLibrary#isFolia}, field will be set to true.
+     */
     private void tryLoadWithFolia() {
         try {
-            loadWithFolia = getPluginMeta().isFoliaSupported();
-            if (loadWithFolia) {
-                getLogger().info("Loaded with Folia!");
-            }
-        } catch (Exception ignored) {
-        }
+            Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
+            isFolia = true;
+            getLogger().info("Loaded with Folia!");
+        } catch (Exception ignored) {}
     }
 
 
@@ -154,8 +156,14 @@ public final class BeefLibrary extends JavaPlugin {
         return placeholderAPIHooked;
     }
 
-    public boolean isFoliaSupported() {
-        return loadWithFolia;
+    /**
+     * Returns true if plugin is running on Folia (or Folia-based fork).
+     * Otherwise, returns false, which means that plugin is running on Paper (or Paper-based fork).
+     *
+     * @return true if plugin is running on Folia (or Folia-based fork), otherwise false.
+     */
+    public boolean isFolia() {
+        return isFolia;
     }
 
     public static void registerListeners(Plugin plugin, Listener... listeners) {
