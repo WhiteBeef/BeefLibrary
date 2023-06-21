@@ -13,6 +13,7 @@ import ru.whitebeef.beeflibrary.chat.MessageType;
 import ru.whitebeef.beeflibrary.commands.AbstractCommand;
 import ru.whitebeef.beeflibrary.commands.SimpleCommand;
 import ru.whitebeef.beeflibrary.commands.impl.inventorygui.OpenSubCommand;
+import ru.whitebeef.beeflibrary.handlers.PlayerJoinQuitHandler;
 import ru.whitebeef.beeflibrary.handlers.PluginHandler;
 import ru.whitebeef.beeflibrary.inventory.CustomInventoryGUICommand;
 import ru.whitebeef.beeflibrary.inventory.IInventoryGUI;
@@ -50,7 +51,7 @@ public final class BeefLibrary extends JavaPlugin {
 
         tryHookPlaceholderAPI();
 
-        registerListeners(this, new OldInventoryGUIHandler(), new InventoryGUIHandler(), new PluginHandler());
+        registerListeners(this, new OldInventoryGUIHandler(), new InventoryGUIHandler(), new PluginHandler(), new PlayerJoinQuitHandler());
         PAPIUtils.unregisterAllPlaceholders();
 
         MessageType.registerTypesSection(this, "messages");
@@ -65,7 +66,8 @@ public final class BeefLibrary extends JavaPlugin {
         ScheduleUtils.runTaskLater(this, () -> {
             if (Bukkit.getPluginManager().isPluginEnabled("PlugManX")) {
                 for (Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
-                    if (!plugin.getDescription().getDepend().contains("BeefLibrary")) {
+                    if (!plugin.getDescription().getDepend().contains("BeefLibrary") &&
+                            !plugin.getDescription().getSoftDepend().contains("BeefLibrary")) {
                         continue;
                     }
                     PlugMan.getInstance().getPluginUtil().reload(plugin);
@@ -86,7 +88,8 @@ public final class BeefLibrary extends JavaPlugin {
             Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
             isFolia = true;
             getLogger().info("Loaded with Folia!");
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
 
