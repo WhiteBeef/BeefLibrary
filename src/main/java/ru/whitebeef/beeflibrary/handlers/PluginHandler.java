@@ -17,7 +17,8 @@ public class PluginHandler implements Listener {
     public void onPluginEnable(PluginEnableEvent event) {
         Plugin plugin = event.getPlugin();
 
-        if (!plugin.getDescription().getDepend().contains("BeefLibrary")) {
+        if (!plugin.getDescription().getDepend().contains("BeefLibrary") &&
+                !plugin.getDescription().getSoftDepend().contains("BeefLibrary")) {
             return;
         }
 
@@ -28,7 +29,8 @@ public class PluginHandler implements Listener {
     @EventHandler
     public void onPluginDisable(PluginDisableEvent event) {
         Plugin plugin = event.getPlugin();
-        if (!plugin.getDescription().getDepend().contains("BeefLibrary")) {
+        if (!plugin.getDescription().getDepend().contains("BeefLibrary") &&
+                !plugin.getDescription().getSoftDepend().contains("BeefLibrary")) {
             return;
         }
 

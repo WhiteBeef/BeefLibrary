@@ -15,7 +15,7 @@ public class PlayerInetUtils {
     private static PlayerInetUtils instance;
 
     public static PlayerInetUtils getInstance() {
-        return instance == null ? new PlayerInetUtils() : instance;
+        return instance;
     }
 
     private final Map<String, Set<UUID>> players = new HashMap<>();

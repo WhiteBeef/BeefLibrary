@@ -25,15 +25,19 @@ import ru.whitebeef.beeflibrary.inventory.impl.UpdatableInventoryGUI;
 import ru.whitebeef.beeflibrary.placeholderapi.PAPIUtils;
 import ru.whitebeef.beeflibrary.utils.ItemUtils;
 import ru.whitebeef.beeflibrary.utils.JedisUtils;
+import ru.whitebeef.beeflibrary.utils.PlayerInetUtils;
 import ru.whitebeef.beeflibrary.utils.ScheduleUtils;
 import ru.whitebeef.beeflibrary.utils.SoundType;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Function;
 
 public final class BeefLibrary extends JavaPlugin {
 
     private static BeefLibrary instance;
+    private final Set<PlaceholderExpansion> registeredExpansions = new HashSet<>();
     private boolean placeholderAPIHooked = false;
     private boolean isFolia = false;
     private boolean debug = false;
@@ -61,6 +65,7 @@ public final class BeefLibrary extends JavaPlugin {
         registerCustomGUICommands();
         registerCommands();
 
+        new PlayerInetUtils();
         new JedisUtils();
 
         ScheduleUtils.runTaskLater(this, () -> {
@@ -70,7 +75,9 @@ public final class BeefLibrary extends JavaPlugin {
                             !plugin.getDescription().getSoftDepend().contains("BeefLibrary")) {
                         continue;
                     }
-                    PlugMan.getInstance().getPluginUtil().reload(plugin);
+                    if (!plugin.isEnabled()) {
+                        PlugMan.getInstance().getPluginUtil().reload(plugin);
+                    }
                 }
             }
         }, 10L);
@@ -106,7 +113,8 @@ public final class BeefLibrary extends JavaPlugin {
     @Override
     public void onDisable() {
         for (Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
-            if (!plugin.getDescription().getDepend().contains("BeefLibrary")) {
+            if (!plugin.getDescription().getDepend().contains("BeefLibrary") &&
+                    !plugin.getDescription().getSoftDepend().contains("BeefLibrary")) {
                 continue;
             }
             Bukkit.getPluginManager().disablePlugin(plugin);
@@ -115,6 +123,7 @@ public final class BeefLibrary extends JavaPlugin {
         InventoryGUIManager.getInstance().closeAllInventories();
         AbstractCommand.unregisterAllCommands(this);
         PAPIUtils.unregisterAllPlaceholders();
+        unregisterPlaceholders();
     }
 
     public void tryHookPlaceholderAPI() {
@@ -133,11 +142,14 @@ public final class BeefLibrary extends JavaPlugin {
         abstractCommand.register(this);
     }
 
+
     public boolean registerPlaceholders(PlaceholderExpansion... expansions) {
         if (isPlaceholderAPIHooked()) {
             for (PlaceholderExpansion expansion : expansions) {
                 if (expansion != null) {
-                    expansion.register();
+                    if (expansion.register()) {
+                        registeredExpansions.add(expansion);
+                    }
                 }
             }
         }
@@ -147,6 +159,17 @@ public final class BeefLibrary extends JavaPlugin {
     public boolean unregisterPlaceholders(PlaceholderExpansion... expansions) {
         if (isPlaceholderAPIHooked()) {
             for (PlaceholderExpansion expansion : expansions) {
+                if (expansion != null) {
+                    expansion.unregister();
+                }
+            }
+        }
+        return isPlaceholderAPIHooked();
+    }
+
+    public boolean unregisterPlaceholders() {
+        if (isPlaceholderAPIHooked()) {
+            for (PlaceholderExpansion expansion : registeredExpansions) {
                 if (expansion != null) {
                     expansion.unregister();
                 }
