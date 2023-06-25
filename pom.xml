@@ -76,6 +76,19 @@
                 </executions>
 
             </plugin>
+            <plugin>
+                <groupId>ca.bkaw</groupId>
+                <artifactId>paper-nms-maven-plugin</artifactId>
+                <version>1.3.2</version>
+                <executions>
+                    <execution>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>remap</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
         <resources>
             <resource>
@@ -85,7 +98,6 @@
         </resources>
     </build>
     <url>t.me/whitebeef</url>
-
     <repositories>
 
         <repository>

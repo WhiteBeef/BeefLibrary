@@ -30,14 +30,16 @@ import ru.whitebeef.beeflibrary.utils.ScheduleUtils;
 import ru.whitebeef.beeflibrary.utils.SoundType;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
 public final class BeefLibrary extends JavaPlugin {
 
     private static BeefLibrary instance;
-    private final Set<PlaceholderExpansion> registeredExpansions = new HashSet<>();
+    private final Map<String, Set<PlaceholderExpansion>> registeredExpansions = new HashMap<>();
     private boolean placeholderAPIHooked = false;
     private boolean isFolia = false;
     private boolean debug = false;
@@ -143,12 +145,12 @@ public final class BeefLibrary extends JavaPlugin {
     }
 
 
-    public boolean registerPlaceholders(PlaceholderExpansion... expansions) {
+    public boolean registerPlaceholders(Plugin plugin, PlaceholderExpansion... expansions) {
         if (isPlaceholderAPIHooked()) {
             for (PlaceholderExpansion expansion : expansions) {
                 if (expansion != null) {
                     if (expansion.register()) {
-                        registeredExpansions.add(expansion);
+                        registeredExpansions.computeIfAbsent(plugin.getName(), k -> new HashSet<>()).add(expansion);
                     }
                 }
             }
@@ -156,9 +158,9 @@ public final class BeefLibrary extends JavaPlugin {
         return isPlaceholderAPIHooked();
     }
 
-    public boolean unregisterPlaceholders(PlaceholderExpansion... expansions) {
+    public boolean unregisterPlaceholders(Plugin plugin) {
         if (isPlaceholderAPIHooked()) {
-            for (PlaceholderExpansion expansion : expansions) {
+            for (PlaceholderExpansion expansion : registeredExpansions.getOrDefault(plugin.getName(), new HashSet<>())) {
                 if (expansion != null) {
                     expansion.unregister();
                 }
@@ -169,9 +171,11 @@ public final class BeefLibrary extends JavaPlugin {
 
     public boolean unregisterPlaceholders() {
         if (isPlaceholderAPIHooked()) {
-            for (PlaceholderExpansion expansion : registeredExpansions) {
-                if (expansion != null) {
-                    expansion.unregister();
+            for (Set<PlaceholderExpansion> set : registeredExpansions.values()) {
+                for (PlaceholderExpansion expansion : set) {
+                    if (expansion != null) {
+                        expansion.unregister();
+                    }
                 }
             }
         }

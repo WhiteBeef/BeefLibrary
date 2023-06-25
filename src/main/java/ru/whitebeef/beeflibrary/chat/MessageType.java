@@ -18,7 +18,7 @@ public final class MessageType {
         }
         String prefix = instance.getName().toLowerCase() + ".";
         for (String type : cfg.getConfigurationSection(path).getKeys(false)) {
-            messages.put(prefix + type, cfg.getString(path + "." + type));
+            registerType(prefix + type, cfg.getString(path + "." + type));
         }
     }
 
@@ -33,8 +33,7 @@ public final class MessageType {
         if (!cfg.isString(path)) {
             return;
         }
-
-        messages.put(instance.getName().toLowerCase() + "." + path, cfg.getString(path));
+        registerType(instance.getName().toLowerCase() + "." + path, cfg.getString(path));
     }
 
     public static void registerType(String path, String value) {
