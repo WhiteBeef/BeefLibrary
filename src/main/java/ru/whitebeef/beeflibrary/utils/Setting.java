@@ -1,6 +1,7 @@
 package ru.whitebeef.beeflibrary.utils;
 
 import java.util.List;
+import java.util.Optional;
 
 public class Setting<T> {
     private final String key;
@@ -15,36 +16,61 @@ public class Setting<T> {
         this.value = newValue;
     }
 
-    public T getValue() {
-        return value;
+    public Optional<T> getValue() {
+        return Optional.of(value);
     }
 
     public String getKey() {
         return key;
     }
 
-    public Integer getInt() {
-        return (Integer) value;
+    public Optional<Integer> getInt() {
+        if (!(value instanceof Integer intValue)) {
+            return Optional.empty();
+        }
+        return Optional.of(intValue);
     }
 
-    public Double getDouble() {
-        return (Double) value;
+    public Optional<Long> getLong() {
+        if (!(value instanceof Long longValue)) {
+            return Optional.empty();
+        }
+        return Optional.of(longValue);
     }
 
-    public Boolean getBoolean() {
-        return (Boolean) value;
+    public Optional<Double> getDouble() {
+        if (!(value instanceof Double doubleValue)) {
+            return Optional.empty();
+        }
+        return Optional.of(doubleValue);
     }
 
-    public String getString() {
-        return (String) value;
+    public Optional<Boolean> getBoolean() {
+        if (!(value instanceof Boolean booleanValue)) {
+            return Optional.empty();
+        }
+        return Optional.of(booleanValue);
     }
 
-    public List<String> getStringList() {
-        return (List<String>) value;
+    public Optional<String> getString() {
+        if (!(value instanceof String stringValue)) {
+            return Optional.empty();
+        }
+        return Optional.of(stringValue);
+    }
+
+    public Optional<List> getStringList() {
+        if (!(value instanceof List listValue)) {
+            return Optional.empty();
+        }
+        if (!(listValue.stream().findAny().orElse(null) instanceof String)) {
+            return Optional.empty();
+        }
+        return Optional.of(listValue);
     }
 
     @Override
     public String toString() {
-        return getString();
+        return value.toString();
     }
 }

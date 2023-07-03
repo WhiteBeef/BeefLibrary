@@ -77,6 +77,13 @@ public class JedisUtils {
         getJedis().rpush(formatJedisKey(plugin, key), set.toArray(String[]::new));
     }
 
+    public static void jedisSetList(Plugin plugin, String key, List<String> list) {
+        if (!isJedisEnabled()) {
+            throw new RuntimeException("Jedis is not enabled!");
+        }
+        getJedis().rpush(formatJedisKey(plugin, key), list.toArray(String[]::new));
+    }
+
     public static void jedisAddInCollection(Plugin plugin, String key, String value) {
         if (!isJedisEnabled()) {
             throw new RuntimeException("Jedis is not enabled!");

@@ -11,4 +11,11 @@ redis:
   port: 6379
   user: "root"
   password: "password"
+database:
+  use-mysql: false
+  host: 127.0.0.1
+  port: 8000
+  database: test
+  username: root
+  password: admin
 debug: true
