@@ -11,8 +11,9 @@ redis:
   port: 6379
   user: "root"
   password: "password"
+# Supported dialects: SQLite, MySQL
 database:
-  use-mysql: false
+  sql-dialect: SQLite
   host: 127.0.0.1
   port: 8000
   database: test

@@ -67,8 +67,8 @@ public final class BeefLibrary extends JavaPlugin {
         registerCustomGUICommands();
         registerCommands();
 
-        new PlayerInetUtils();
         new JedisUtils();
+        new PlayerInetUtils();
 
         ScheduleUtils.runTaskLater(this, () -> {
             if (Bukkit.getPluginManager().isPluginEnabled("PlugManX")) {

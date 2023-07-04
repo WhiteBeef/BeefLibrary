@@ -1,0 +1,141 @@
+package ru.whitebeef.beeflibrary.database.abstractions;
+
+import org.bukkit.Bukkit;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.Nullable;
+import ru.whitebeef.beeflibrary.database.Dialect;
+import ru.whitebeef.beeflibrary.database.Table;
+
+import java.io.File;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+
+public abstract class Database {
+
+    // PluginName, Database
+    private static final Map<String, Database> databases = new HashMap<>();
+
+    public static Database getDatabase(Plugin plugin, String name) {
+        return databases.get(plugin.getName() + ":" + name);
+    }
+
+    private static Connection connection = null;
+
+    private final Map<String, Table> tables = new HashMap<>();
+    private final String host;
+    private final String database;
+    private final String username;
+    private final String password;
+    private final Integer port;
+    private final String SQL;
+    private final Dialect dialect;
+
+    public Database(Plugin plugin) {
+        this(plugin, "database");
+    }
+
+    public Database(Plugin plugin, String databasePath) {
+        ConfigurationSection databaseSection = plugin.getConfig().getConfigurationSection(databasePath);
+
+        dialect = Dialect.valueOf(databaseSection.getString("sql-dialect").toUpperCase());
+        host = databaseSection.getString("host");
+        database = databaseSection.getString("database");
+        username = databaseSection.getString("username");
+        password = databaseSection.getString("password");
+        port = databaseSection.getInt("port");
+
+        switch (dialect) {
+            case MYSQL -> {
+                try {
+                    Class.forName("com.mysql.cj.jdbc.Driver");
+                } catch (ClassNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
+                SQL = "jdbc:mysql://" + host + ":" + port + "/" + database + "?useUnicode=true&passwordCharacterEncoding=utf8&characterEncoding=utf8&useSSL=false&useTimezone=true&useLegacyDatetimeCode=false&serverTimezone=UTC";
+            }
+            case SQLITE, default -> {
+                File dataFolder = new File(plugin.getDataFolder(), database + ".db");
+                if (!dataFolder.exists()) {
+                    try {
+                        if (!dataFolder.createNewFile()) {
+                            Bukkit.getLogger().info("Could not create a database file!");
+                        }
+                    } catch (IOException e) {
+                        Bukkit.getLogger().info("File write error: " + database + ".db");
+                    }
+                }
+                SQL = "jdbc:sqlite:" + dataFolder;
+            }
+        }
+        databases.put(plugin.getName() + ":" + database, this);
+    }
+
+
+    private synchronized void setup() {
+        for (Table table : tables.values()) {
+            table.setup(this);
+        }
+        connection = getConnection();
+    }
+
+    public synchronized void close() {
+        try {
+            if (connection != null) {
+                connection.close();
+            }
+        } catch (SQLException ignored) {
+        }
+    }
+
+    private synchronized void connect() {
+        try {
+            if (!connection.isClosed()) {
+                return;
+            }
+        } catch (Exception ignored) {
+        }
+        try {
+            connection = DriverManager.getConnection(SQL, username, password);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public synchronized final Connection getConnection(boolean forceConnect) {
+        if (forceConnect) {
+            connect();
+        }
+        return getConnection();
+    }
+
+    public synchronized final Connection getConnection() {
+        try {
+            if (connection == null || connection.isClosed()) {
+                connect();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            connect();
+        }
+        return connection;
+    }
+
+    public final Database addTable(Table table) {
+        tables.put(table.getName(), table);
+        return this;
+    }
+
+    @Nullable
+    public final Table getTable(String name) {
+        return tables.get(name);
+    }
+
+    public Dialect getDialect() {
+        return dialect;
+    }
+}
