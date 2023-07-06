@@ -146,7 +146,20 @@ public class PAPIUtils {
             sb.append(text, index, matcher.start());
             String placeholder = "%" + matcher.group(2) + "%";
             if (!isRegisteredPlaceholder(placeholder)) {
-                sb.append(matcher.group(1).equals("sender") ? setPlaceholders(sender, placeholder) : setPlaceholders(recipient, placeholder));
+                boolean isSenderPlaceholder = matcher.group(1).equals("sender");
+                if (isSenderPlaceholder) {
+                    if (sender != null) {
+                        sb.append(setPlaceholders(sender, placeholder));
+                    } else {
+                        sb.append(text, index, matcher.end());
+                    }
+                } else {
+                    if (recipient == null) {
+                        sb.append(setPlaceholders(recipient, placeholder));
+                    } else {
+                        sb.append(text, index, matcher.end());
+                    }
+                }
             } else {
                 sb.append(text, index, matcher.end());
             }
