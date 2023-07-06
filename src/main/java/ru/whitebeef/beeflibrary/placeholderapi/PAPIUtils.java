@@ -89,6 +89,9 @@ public class PAPIUtils {
     }
 
     public static String setPlaceholders(CommandSender sender, String text) {
+        if (sender == null) {
+            return text;
+        }
         if (!(sender instanceof Player player)) {
             return text.replaceAll("%player_name%", sender.getName()).replaceAll("%(?!message\\b)[A-z0-9_]+%", "");
         }
