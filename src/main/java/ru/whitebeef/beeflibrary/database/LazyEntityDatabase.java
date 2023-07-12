@@ -55,9 +55,9 @@ public class LazyEntityDatabase extends Database {
     public boolean saveLazyEntity(LazyEntity lazyEntity) {
         boolean saved = true;
         String SQL = switch (getDialect()) {
-            case SQLITE -> "INSERT INTO LazyPlayers (uuid, data) VALUES (?,?) " +
+            case SQLITE -> "INSERT INTO LazyEntities (uuid, data) VALUES (?,?) " +
                     "ON CONFLICT(uuid) DO UPDATE SET data = ?";
-            case MYSQL -> "INSERT INTO LazyPlayers (uuid, data) VALUES (?,?) " +
+            case MYSQL -> "INSERT INTO LazyEntities (uuid, data) VALUES (?,?) " +
                     "ON DUPLICATE KEY UPDATE data = ?";
         };
         try (Connection connection = getConnection();

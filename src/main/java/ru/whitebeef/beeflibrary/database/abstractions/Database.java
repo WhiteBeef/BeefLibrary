@@ -97,7 +97,7 @@ public abstract class Database {
     }
 
 
-    private synchronized void setup() {
+    public synchronized void setup() {
         for (Table table : tables.values()) {
             table.setup(this);
         }

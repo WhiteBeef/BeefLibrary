@@ -27,7 +27,7 @@ public class Table {
         if (columns.size() > 0) {
             Column lastColumn = columns.get(columns.size() - 1);
             for (Column column : columns) {
-                sql.append(column.name()).append(" ").append(column.type()).append(" ").append(column.additional());
+                sql.append(column.name()).append(" ").append(column.type());
                 if (column != lastColumn) {
                     sql.append(",");
                 }

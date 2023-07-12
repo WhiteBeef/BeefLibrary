@@ -14,7 +14,9 @@ import ru.whitebeef.beeflibrary.chat.MessageType;
 import ru.whitebeef.beeflibrary.commands.AbstractCommand;
 import ru.whitebeef.beeflibrary.commands.SimpleCommand;
 import ru.whitebeef.beeflibrary.commands.impl.inventorygui.OpenSubCommand;
+import ru.whitebeef.beeflibrary.database.Column;
 import ru.whitebeef.beeflibrary.database.LazyEntityDatabase;
+import ru.whitebeef.beeflibrary.database.Table;
 import ru.whitebeef.beeflibrary.entites.LazyPlayer;
 import ru.whitebeef.beeflibrary.handlers.PlayerJoinQuitHandler;
 import ru.whitebeef.beeflibrary.handlers.PluginHandler;
@@ -95,7 +97,12 @@ public final class BeefLibrary extends JavaPlugin {
                 }
             }
         }, 10L);
-        new LazyEntityDatabase();
+
+        new LazyEntityDatabase().addTable(new Table("LazyEntities")
+                .addColumn(new Column("uuid", "VARCHAR(65) PRIMARY KEY"))
+                .addColumn(new Column("data", "TEXT"))
+        ).setup();
+
         LazyPlayer.startLazySaveTask();
 
         debug = getConfig().getBoolean("debug");
