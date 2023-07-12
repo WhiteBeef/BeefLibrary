@@ -36,7 +36,7 @@ public abstract class Database {
                 .map(Map.Entry::getValue).toList();
     }
 
-    private static Connection connection = null;
+    private Connection connection = null;
 
     private final Map<String, Table> tables = new HashMap<>();
     private final String host;
@@ -98,10 +98,10 @@ public abstract class Database {
 
 
     public synchronized void setup() {
+        connection = getConnection();
         for (Table table : tables.values()) {
             table.setup(this);
         }
-        connection = getConnection();
     }
 
     public synchronized void close() {

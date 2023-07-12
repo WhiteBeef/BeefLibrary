@@ -24,6 +24,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public abstract class LazyEntity {
+    //TODO: переписать registeredTypes, чтобы был Set пар
     private static final Map<String, Pair<Class<? extends LazyEntity>, Class<? extends LazyEntityData>>> registeredTypes = new HashMap<>();
     private static final Map<String, Map<UUID, LazyEntity>> loadedEntities = new HashMap<>();
     private static final Map<String, Set<LazyEntity>> toSave = new HashMap<>();
@@ -35,7 +36,7 @@ public abstract class LazyEntity {
                                               @NotNull Class<? extends LazyEntityData> lazyEntityDataClass, String databasePath) {
         registeredTypes.put(plugin.getName(), Pair.of(lazyEntityClass, lazyEntityDataClass));
         new LazyEntityDatabase(plugin, databasePath)
-                .addTable(new Table(lazyEntityClass.getSimpleName())
+                .addTable(new Table("LazyEntities")
                         .addColumn(new Column("uuid", "VARCHAR(65) PRIMARY KEY"))
                         .addColumn(new Column("data", "TEXT"))
                 ).setup();
@@ -91,7 +92,7 @@ public abstract class LazyEntity {
             loadedEntities.computeIfAbsent(lazyEntity.getPluginName(), k -> new HashMap<>()).put(lazyEntity.getEntityUuid(), lazyEntity);
             return;
         }
-        JedisUtils.jedisSet(plugin, lazyEntity.getEntityUuid().toString(), GsonUtils.parseObject(lazyEntity.getData()));
+        JedisUtils.jedisSet(plugin, lazyEntity.getClass().getSimpleName() + ":" + lazyEntity.getEntityUuid().toString(), GsonUtils.parseObject(lazyEntity.getData()));
     }
 
     @Nullable
@@ -99,12 +100,14 @@ public abstract class LazyEntity {
         if (!JedisUtils.isJedisEnabled()) {
             return loadedEntities.getOrDefault(plugin.getName(), new HashMap<>()).get(entityUuid);
         }
-        String json = JedisUtils.jedisGet(plugin, entityUuid.toString());
-        if (json == null) {
+        var pair = registeredTypes.get(plugin.getName());
+
+        if (pair == null) {
             return null;
         }
-        var pair = registeredTypes.get(plugin.getName());
-        if (pair == null) {
+
+        String json = JedisUtils.jedisGet(plugin, pair.left().getSimpleName() + ":" + entityUuid);
+        if (json == null) {
             return null;
         }
         try {
@@ -119,7 +122,11 @@ public abstract class LazyEntity {
         if (!JedisUtils.isJedisEnabled()) {
             return loadedEntities.getOrDefault(plugin.getName(), new HashMap<>()).get(entityUuid) != null;
         }
-        String json = JedisUtils.jedisGet(plugin, entityUuid.toString());
+        var pair = registeredTypes.get(plugin.getName());
+        if (pair == null) {
+            return false;
+        }
+        String json = JedisUtils.jedisGet(plugin, pair.left().getSimpleName() + ":" + entityUuid);
         return json != null;
     }
 
@@ -128,7 +135,12 @@ public abstract class LazyEntity {
             loadedEntities.getOrDefault(plugin.getName(), new HashMap<>()).remove(entityUuid);
             return;
         }
-        JedisUtils.jedisDel(plugin, entityUuid.toString());
+        var pair = registeredTypes.get(plugin.getName());
+
+        if (pair == null) {
+            return;
+        }
+        JedisUtils.jedisDel(plugin, pair.left().getSimpleName() + ":" + entityUuid);
     }
 
     public static void unload(Plugin plugin, UUID entityUuid) {
@@ -202,5 +214,14 @@ public abstract class LazyEntity {
 
     public boolean save() {
         return ((LazyEntityDatabase) Database.getDatabase(pluginName, "LazyEntity")).saveLazyEntity(this);
+    }
+
+    @Override
+    public String toString() {
+        return "LazyEntity{" +
+                "pluginName='" + pluginName + '\'' +
+                ", entityUuid=" + entityUuid +
+                ", data=" + GsonUtils.parseObject(data) +
+                '}';
     }
 }

@@ -23,11 +23,14 @@ public class Color {
 
     @NotNull
     public static Component colorize(@NotNull Component component) {
+        System.out.println("0" + MiniMessage.miniMessage().serialize(component));
+
         component = component.replaceText(TextReplacementConfig.builder()
                 .match("#[0-9A-Fa-f]{6}")
                 .replacement((matchResult, builder) -> Component.text("<color:" + matchResult.group() + ">"))
                 .build());
-
+        System.out.println("1" + MiniMessage.miniMessage().serialize(component));
+        System.out.println("2" + MiniMessage.miniMessage().serialize(component).replace("\\<color:", "<color:"));
         component = MiniMessage.miniMessage().deserialize(MiniMessage.miniMessage().serialize(component).replace("\\<color:", "<color:"));
         return component;
     }

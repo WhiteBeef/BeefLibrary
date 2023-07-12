@@ -22,6 +22,10 @@ public abstract class LazyPlayer extends LazyEntity {
         super(plugin, uuid, data);
     }
 
+    public LazyPlayer(Plugin plugin, UUID uuid) {
+        super(plugin, uuid);
+    }
+
     @Nullable
     public Player getPlayer() {
         return Bukkit.getPlayer(getEntityUuid());
