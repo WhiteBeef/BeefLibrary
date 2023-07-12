@@ -3,6 +3,7 @@ package ru.whitebeef.beeflibrary.placeholderapi;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.command.CommandSender;
@@ -12,7 +13,6 @@ import org.intellij.lang.annotations.RegExp;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.whitebeef.beeflibrary.BeefLibrary;
-import ru.whitebeef.beeflibrary.chat.MessageFormatter;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -131,16 +131,16 @@ public class PAPIUtils {
                 .replaceText(TextReplacementConfig.builder()
                         .match("%(sender|recipient){1}\\-([\\w\\-\\_]+)%")
                         .replacement((matchResult, builder) -> {
-                            MessageFormatter formatter = MessageFormatter.of("%" + matchResult.group(2) + "%");
+                            String placeholder = "%" + matchResult.group(2) + "%";
                             if (matchResult.group(1).equals("sender")) {
                                 if (sender != null) {
-                                    return formatter.toComponent(sender);
+                                    return Component.text(PAPIUtils.setPlaceholders(sender, placeholder));
                                 } else {
                                     return Component.text(matchResult.group());
                                 }
                             } else {
                                 if (recipient != null) {
-                                    return formatter.toComponent(recipient);
+                                    return Component.text(PAPIUtils.setPlaceholders(recipient, placeholder));
                                 } else {
                                     return Component.text(matchResult.group());
                                 }
