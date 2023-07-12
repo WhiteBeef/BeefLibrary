@@ -3,15 +3,19 @@ package ru.whitebeef.beeflibrary.utils;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.Plugin;
 import redis.clients.jedis.JedisPooled;
+import redis.clients.jedis.JedisPubSub;
 import ru.whitebeef.beeflibrary.BeefLibrary;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class JedisUtils {
 
-    private JedisPooled jedis = null;
+    private static Map<String, Map<String, JedisPubSub>> registeredPubSubs = new HashMap<>();
 
     private static JedisUtils instance;
 
@@ -19,10 +23,14 @@ public class JedisUtils {
         return instance;
     }
 
+    private JedisPooled jedis = null;
+
+
     public JedisUtils() {
         instance = this;
         loadRedis();
     }
+
 
     private void loadRedis() {
         FileConfiguration config = BeefLibrary.getInstance().getConfig();
@@ -70,32 +78,47 @@ public class JedisUtils {
         return jedisKeyExists(plugin, key) ? GsonUtils.parseJSON(getJedis().get(formatJedisKey(plugin, key)), clazz) : null;
     }
 
-    public static void jedisSetCollection(Plugin plugin, String key, Set<String> set) {
+    public static void jedisSetSet(Plugin plugin, String key, Set<String> set) {
         if (!isJedisEnabled()) {
             throw new RuntimeException("Jedis is not enabled!");
         }
-        getJedis().rpush(formatJedisKey(plugin, key), set.toArray(String[]::new));
+        key = formatJedisKey(plugin, key);
+        getJedis().del(key);
+        getJedis().sadd(key, set.toArray(String[]::new));
     }
 
     public static void jedisSetList(Plugin plugin, String key, List<String> list) {
         if (!isJedisEnabled()) {
             throw new RuntimeException("Jedis is not enabled!");
         }
-        getJedis().rpush(formatJedisKey(plugin, key), list.toArray(String[]::new));
+        key = formatJedisKey(plugin, key);
+        getJedis().del(key);
+        getJedis().rpush(key, list.toArray(String[]::new));
     }
 
-    public static void jedisAddInCollection(Plugin plugin, String key, String value) {
+    public static void jedisAddInList(Plugin plugin, String key, String value) {
         if (!isJedisEnabled()) {
             throw new RuntimeException("Jedis is not enabled!");
         }
         if (!jedisKeyExists(plugin, key)) {
-            jedisSetCollection(plugin, key, Set.of(value));
+            jedisSetList(plugin, key, List.of(value));
             return;
         }
         getJedis().lpush(formatJedisKey(plugin, key), value);
     }
 
-    public static void jedisRemoveFromCollection(Plugin plugin, String key, String value) {
+    public static void jedisAddInSet(Plugin plugin, String key, String value) {
+        if (!isJedisEnabled()) {
+            throw new RuntimeException("Jedis is not enabled!");
+        }
+        if (!jedisKeyExists(plugin, key)) {
+            jedisSetSet(plugin, key, Set.of(value));
+            return;
+        }
+        getJedis().sadd(formatJedisKey(plugin, key), value);
+    }
+
+    public static void jedisRemoveFromList(Plugin plugin, String key, String value) {
         if (!isJedisEnabled()) {
             throw new RuntimeException("Jedis is not enabled!");
         }
@@ -105,18 +128,42 @@ public class JedisUtils {
         getJedis().lrem(formatJedisKey(plugin, key), 1, value);
     }
 
-    public static List<String> jedisGetCollection(Plugin plugin, String key) {
+    public static void jedisRemoveFromSet(Plugin plugin, String key, String... values) {
+        if (!isJedisEnabled()) {
+            throw new RuntimeException("Jedis is not enabled!");
+        }
+        if (!jedisKeyExists(plugin, key)) {
+            return;
+        }
+        getJedis().srem(formatJedisKey(plugin, key), values);
+    }
+
+    public static List<String> jedisGetList(Plugin plugin, String key) {
         if (!isJedisEnabled()) {
             throw new RuntimeException("Jedis is not enabled!");
         }
         return jedisKeyExists(plugin, key) ? getJedis().lrange(formatJedisKey(plugin, key), 0, getJedis().llen(formatJedisKey(plugin, key))) : Collections.emptyList();
     }
 
-    public static boolean jedisContainsCollection(Plugin plugin, String key, String value) {
+    public static Set<String> jedisGetSet(Plugin plugin, String key) {
+        if (!isJedisEnabled()) {
+            throw new RuntimeException("Jedis is not enabled!");
+        }
+        return jedisKeyExists(plugin, key) ? getJedis().sunion(formatJedisKey(plugin, key)) : new HashSet<>();
+    }
+
+    public static boolean jedisContainsInList(Plugin plugin, String key, String value) {
         if (!isJedisEnabled()) {
             throw new RuntimeException("Jedis is not enabled!");
         }
         return jedisKeyExists(plugin, key) && getJedis().lpos(formatJedisKey(plugin, key), value) != null;
+    }
+
+    public static boolean jedisContainsInSet(Plugin plugin, String key, String value) {
+        if (!isJedisEnabled()) {
+            throw new RuntimeException("Jedis is not enabled!");
+        }
+        return jedisKeyExists(plugin, key) && getJedis().sismember(formatJedisKey(plugin, key), value);
     }
 
     public static boolean jedisKeyExists(Plugin plugin, String key) {
@@ -138,6 +185,37 @@ public class JedisUtils {
             throw new RuntimeException("Jedis is not enabled!");
         }
         getJedis().del(formatJedisKey(plugin, key));
+    }
+
+    public static void subscribe(Plugin plugin, String channelName, JedisPubSub jedisPubSub) {
+        if (!isJedisEnabled()) {
+            throw new RuntimeException("Jedis is not enabled!");
+        }
+        registeredPubSubs.computeIfAbsent(plugin.getName(), k -> new HashMap<>()).put(formatJedisKey(plugin, channelName), jedisPubSub);
+        ScheduleUtils.runTaskAsynchronously(() -> JedisUtils.getJedis().subscribe(jedisPubSub, formatJedisKey(plugin, channelName)));
+    }
+
+    /**
+     * Format: serverUuid;message
+     */
+    public static void jedisSend(Plugin plugin, String channelName, String message) {
+        if (!isJedisEnabled()) {
+            throw new RuntimeException("Jedis is not enabled!");
+        }
+        getJedis().publish(formatJedisKey(plugin, channelName), BeefLibrary.getServerUuid() + ";" + message);
+    }
+
+    public static void unSubscribe(Plugin plugin) {
+        if (!isJedisEnabled()) {
+            throw new RuntimeException("Jedis is not enabled!");
+        }
+
+        registeredPubSubs.getOrDefault(plugin.getName(), new HashMap<>()).forEach((key, value) -> value.unsubscribe(key));
+    }
+
+    public static void unSubscribeAll() {
+        registeredPubSubs.forEach((s, jedisPubSubs) -> jedisPubSubs.forEach((key, value) -> value.unsubscribe(key)));
+
     }
 
 }

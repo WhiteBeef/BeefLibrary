@@ -151,17 +151,17 @@ public class PAPIUtils {
                     if (sender != null) {
                         sb.append(setPlaceholders(sender, placeholder));
                     } else {
-                        sb.append(text, index, matcher.end());
+                        sb.append(text, matcher.start(), matcher.end());
                     }
                 } else {
-                    if (recipient == null) {
+                    if (recipient != null) {
                         sb.append(setPlaceholders(recipient, placeholder));
                     } else {
-                        sb.append(text, index, matcher.end());
+                        sb.append(text, matcher.start(), matcher.end());
                     }
                 }
             } else {
-                sb.append(text, index, matcher.end());
+                sb.append(text, matcher.start(), matcher.end());
             }
             index = matcher.end();
         }

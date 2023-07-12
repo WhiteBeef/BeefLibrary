@@ -2,6 +2,7 @@ package ru.whitebeef.beeflibrary.commands;
 
 import org.bukkit.command.CommandSender;
 import ru.whitebeef.beeflibrary.chat.MessageFormatter;
+import ru.whitebeef.beeflibrary.chat.MessageSender;
 import ru.whitebeef.beeflibrary.chat.MessageType;
 
 import java.util.function.BiConsumer;
@@ -9,19 +10,19 @@ import java.util.function.BiConsumer;
 public enum StandardConsumers {
 
     NO_PERMISSION((sender, args) -> {
-        sender.sendMessage(MessageFormatter.of(MessageType.of("beeflibrary.no_permissions")).toComponent(sender));
+        MessageSender.sendMessageType(sender, "beeflibrary.no_permissions");
     }),
 
     ONLY_FOR_PLAYERS((sender, args) -> {
-        sender.sendMessage(MessageFormatter.of(MessageType.of("beeflibrary.only_for_players")).toComponent(sender));
+        MessageSender.sendMessageType(sender, "beeflibrary.only_for_players");
     }),
 
     COOLDOWN((sender, args) -> {
-        sender.sendMessage(MessageFormatter.of(MessageType.of("beeflibrary.cooldown")).toComponent(sender));
+        MessageSender.sendMessageType(sender, "beeflibrary.cooldown");
     }),
 
     NO_ARGS((sender, args) -> {
-        sender.sendMessage(MessageFormatter.of(MessageType.of("beeflibrary.no_args")).toComponent(sender));
+        MessageSender.sendMessageType(sender, "beeflibrary.no_args");
     });
 
     private final BiConsumer<CommandSender, String[]> biConsumer;

@@ -13,6 +13,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 public abstract class Database {
@@ -22,6 +24,12 @@ public abstract class Database {
 
     public static Database getDatabase(Plugin plugin, String name) {
         return databases.get(plugin.getName() + ":" + name);
+    }
+
+    public static List<Database> getDatabases(Plugin plugin) {
+        return new HashSet<>(databases.entrySet()).stream()
+                .filter(entry -> entry.getKey().startsWith(plugin.getName() + ":"))
+                .map(Map.Entry::getValue).toList();
     }
 
     private static Connection connection = null;
@@ -58,7 +66,20 @@ public abstract class Database {
                 }
                 SQL = "jdbc:mysql://" + host + ":" + port + "/" + database + "?useUnicode=true&passwordCharacterEncoding=utf8&characterEncoding=utf8&useSSL=false&useTimezone=true&useLegacyDatetimeCode=false&serverTimezone=UTC";
             }
-            case SQLITE, default -> {
+            case SQLITE -> {
+                File dataFolder = new File(plugin.getDataFolder(), database + ".db");
+                if (!dataFolder.exists()) {
+                    try {
+                        if (!dataFolder.createNewFile()) {
+                            Bukkit.getLogger().info("Could not create a database file!");
+                        }
+                    } catch (IOException e) {
+                        Bukkit.getLogger().info("File write error: " + database + ".db");
+                    }
+                }
+                SQL = "jdbc:sqlite:" + dataFolder;
+            }
+            default -> {
                 File dataFolder = new File(plugin.getDataFolder(), database + ".db");
                 if (!dataFolder.exists()) {
                     try {

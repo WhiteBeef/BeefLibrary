@@ -2,12 +2,12 @@ package ru.whitebeef.beeflibrary.utils;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
 import ru.whitebeef.beeflibrary.BeefLibrary;
 
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -22,6 +22,7 @@ public class PlayerInetUtils {
     }
 
     private final Map<String, Set<UUID>> players = new HashMap<>();
+    private final Map<UUID, String> cacheUuids = new HashMap<>();
 
     public PlayerInetUtils() {
         instance = this;
@@ -34,7 +35,13 @@ public class PlayerInetUtils {
         if (socketAddress == null) {
             throw new IllegalStateException("Player with name " + player.getName() + " has not inet socket address");
         }
+        instance.cacheUuids.put(player.getUniqueId(), socketAddress.getHostString());
         return socketAddress.getHostString();
+    }
+
+    @Nullable
+    public static String getIP(UUID playerUuid) {
+        return instance.cacheUuids.get(playerUuid);
     }
 
     public static Set<UUID> getPlayersWithSimilarIp(Player player) {
@@ -43,8 +50,24 @@ public class PlayerInetUtils {
         if (!JedisUtils.isJedisEnabled()) {
             return getInstance().players.getOrDefault(ip, new HashSet<>());
         } else {
-            List<String> list = JedisUtils.jedisGetCollection(BeefLibrary.getInstance(), "ip:" + ip);
-            return list == null ? new HashSet<>() : list.stream().map(UUID::fromString).collect(Collectors.toSet());
+            return JedisUtils.jedisGetSet(BeefLibrary.getInstance(), "IP:" + ip).stream()
+                    .map(UUID::fromString)
+                    .collect(Collectors.toSet());
+        }
+    }
+
+    public static Set<UUID> getPlayersWithSimilarIp(UUID playerUuid) {
+        String ip = getIP(playerUuid);
+        if (ip == null) {
+            return new HashSet<>();
+        }
+
+        if (!JedisUtils.isJedisEnabled()) {
+            return getInstance().players.getOrDefault(ip, new HashSet<>());
+        } else {
+            return JedisUtils.jedisGetSet(BeefLibrary.getInstance(), "IP:" + ip).stream()
+                    .map(UUID::fromString)
+                    .collect(Collectors.toSet());
         }
     }
 
@@ -54,7 +77,7 @@ public class PlayerInetUtils {
         if (!JedisUtils.isJedisEnabled()) {
             players.computeIfAbsent(ip, k -> new HashSet<>()).add(player.getUniqueId());
         } else {
-            JedisUtils.jedisAddInCollection(BeefLibrary.getInstance(), "ip:" + ip, player.getUniqueId().toString());
+            JedisUtils.jedisAddInSet(BeefLibrary.getInstance(), "IP:" + ip, player.getUniqueId().toString());
         }
     }
 
@@ -72,7 +95,7 @@ public class PlayerInetUtils {
             }
             players.put(ip, uuids);
         } else {
-            Set<String> uuids = JedisUtils.jedisGetCollection(BeefLibrary.getInstance(), "ip:" + ip).stream().collect(Collectors.toSet());
+            Set<String> uuids = JedisUtils.jedisGetSet(BeefLibrary.getInstance(), "IP:" + ip);
 
             if (uuids.isEmpty()) {
                 return;
@@ -81,8 +104,9 @@ public class PlayerInetUtils {
 
             if (uuids.isEmpty()) {
                 JedisUtils.jedisDel(BeefLibrary.getInstance(), ip);
+            } else {
+                JedisUtils.jedisSetSet(BeefLibrary.getInstance(), ip, uuids);
             }
-            JedisUtils.jedisSetCollection(BeefLibrary.getInstance(), ip, uuids);
         }
 
     }

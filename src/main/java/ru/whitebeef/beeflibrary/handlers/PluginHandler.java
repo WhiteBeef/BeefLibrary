@@ -8,8 +8,10 @@ import org.bukkit.plugin.Plugin;
 import ru.whitebeef.beeflibrary.BeefLibrary;
 import ru.whitebeef.beeflibrary.chat.MessageType;
 import ru.whitebeef.beeflibrary.commands.AbstractCommand;
+import ru.whitebeef.beeflibrary.database.abstractions.Database;
 import ru.whitebeef.beeflibrary.inventory.InventoryGUIManager;
 import ru.whitebeef.beeflibrary.placeholderapi.PAPIUtils;
+import ru.whitebeef.beeflibrary.utils.JedisUtils;
 import ru.whitebeef.beeflibrary.utils.SoundType;
 
 public class PluginHandler implements Listener {
@@ -41,5 +43,11 @@ public class PluginHandler implements Listener {
         AbstractCommand.unregisterAllCommands(plugin);
         PAPIUtils.unregisterPlaceholders(plugin);
         MessageType.unregisterTypesSection(plugin);
+        if (JedisUtils.isJedisEnabled()) {
+            JedisUtils.unSubscribe(plugin);
+        }
+        for (Database database : Database.getDatabases(event.getPlugin())) {
+            database.close();
+        }
     }
 }

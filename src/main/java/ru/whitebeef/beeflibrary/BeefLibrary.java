@@ -5,6 +5,7 @@ import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
@@ -13,6 +14,8 @@ import ru.whitebeef.beeflibrary.chat.MessageType;
 import ru.whitebeef.beeflibrary.commands.AbstractCommand;
 import ru.whitebeef.beeflibrary.commands.SimpleCommand;
 import ru.whitebeef.beeflibrary.commands.impl.inventorygui.OpenSubCommand;
+import ru.whitebeef.beeflibrary.database.LazyEntityDatabase;
+import ru.whitebeef.beeflibrary.entites.LazyPlayer;
 import ru.whitebeef.beeflibrary.handlers.PlayerJoinQuitHandler;
 import ru.whitebeef.beeflibrary.handlers.PluginHandler;
 import ru.whitebeef.beeflibrary.inventory.CustomInventoryGUICommand;
@@ -34,19 +37,26 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 
 public final class BeefLibrary extends JavaPlugin {
 
     private static BeefLibrary instance;
-    private final Map<String, Set<PlaceholderExpansion>> registeredExpansions = new HashMap<>();
-    private boolean placeholderAPIHooked = false;
-    private boolean isFolia = false;
-    private boolean debug = false;
+    private static UUID serverUuid;
 
     public static BeefLibrary getInstance() {
         return instance;
     }
+
+    public static UUID getServerUuid() {
+        return serverUuid;
+    }
+
+    private final Map<String, Set<PlaceholderExpansion>> registeredExpansions = new HashMap<>();
+    private boolean placeholderAPIHooked = false;
+    private boolean isFolia = false;
+    private boolean debug = false;
 
     @Override
     public void onEnable() {
@@ -54,6 +64,8 @@ public final class BeefLibrary extends JavaPlugin {
         tryLoadWithFolia();
 
         loadConfig(this);
+
+        generateServerUuid();
 
         tryHookPlaceholderAPI();
 
@@ -83,9 +95,10 @@ public final class BeefLibrary extends JavaPlugin {
                 }
             }
         }, 10L);
+        new LazyEntityDatabase();
+        LazyPlayer.startLazySaveTask();
 
         debug = getConfig().getBoolean("debug");
-
     }
 
     /**
@@ -126,6 +139,10 @@ public final class BeefLibrary extends JavaPlugin {
         AbstractCommand.unregisterAllCommands(this);
         PAPIUtils.unregisterAllPlaceholders();
         unregisterPlaceholders();
+        if (JedisUtils.isJedisEnabled()) {
+            JedisUtils.unSubscribeAll();
+        }
+
     }
 
     public void tryHookPlaceholderAPI() {
@@ -244,5 +261,18 @@ public final class BeefLibrary extends JavaPlugin {
             }
         }
         ));
+    }
+
+    private void generateServerUuid() {
+        FileConfiguration config = getConfig();
+        UUID uuid = UUID.randomUUID();
+        if (!config.isSet("server_uuid")) {
+            config.set("server_uuid", uuid.toString());
+        } else {
+            uuid = UUID.fromString(config.getString("server_uuid"));
+        }
+
+        serverUuid = uuid;
+        saveConfig();
     }
 }
