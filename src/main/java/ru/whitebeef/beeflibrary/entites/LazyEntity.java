@@ -8,7 +8,10 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.whitebeef.beeflibrary.BeefLibrary;
+import ru.whitebeef.beeflibrary.database.Column;
 import ru.whitebeef.beeflibrary.database.LazyEntityDatabase;
+import ru.whitebeef.beeflibrary.database.Table;
+import ru.whitebeef.beeflibrary.database.abstractions.Database;
 import ru.whitebeef.beeflibrary.utils.GsonUtils;
 import ru.whitebeef.beeflibrary.utils.JedisUtils;
 import ru.whitebeef.beeflibrary.utils.ScheduleUtils;
@@ -29,8 +32,13 @@ public abstract class LazyEntity {
     private static ScheduledTask lazyScheduledSaveTask = null;
 
     public static void registerLazyEntityType(@NotNull Plugin plugin, @NotNull Class<? extends LazyEntity> lazyEntityClass,
-                                              @NotNull Class<? extends LazyEntityData> lazyEntityDataClass) {
+                                              @NotNull Class<? extends LazyEntityData> lazyEntityDataClass, String databasePath) {
         registeredTypes.put(plugin.getName(), Pair.of(lazyEntityClass, lazyEntityDataClass));
+        new LazyEntityDatabase(plugin, databasePath)
+                .addTable(new Table(lazyEntityClass.getSimpleName())
+                        .addColumn(new Column("uuid", "VARCHAR(65) PRIMARY KEY"))
+                        .addColumn(new Column("data", "TEXT"))
+                ).setup();
     }
 
     public static Set<String> getRegisteredPluginNames() {
@@ -136,7 +144,7 @@ public abstract class LazyEntity {
         if (lazyEntity != null) {
             return lazyEntity;
         }
-        lazyEntity = LazyEntityDatabase.getInstance().getLazyEntity(plugin, entityUuid);
+        lazyEntity = ((LazyEntityDatabase) Database.getDatabase(plugin, "LazyEntity")).getLazyEntity(plugin, entityUuid);
 
         if (lazyEntity != null) {
             addCache(plugin, lazyEntity);
@@ -193,6 +201,6 @@ public abstract class LazyEntity {
     }
 
     public boolean save() {
-        return LazyEntityDatabase.getInstance().saveLazyEntity(this);
+        return ((LazyEntityDatabase) Database.getDatabase(pluginName, "LazyEntity")).saveLazyEntity(this);
     }
 }

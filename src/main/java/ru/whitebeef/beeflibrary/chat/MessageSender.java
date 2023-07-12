@@ -5,6 +5,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
+import java.util.UUID;
+
 public class MessageSender {
 
     public static void sendMessage(CommandSender sender, Component component) {
@@ -38,4 +40,9 @@ public class MessageSender {
     public static void sendActionBar(Player player, Component str) {
         player.sendActionBar(str);
     }
+
+    public static void sendMultiServerMessage(UUID playerUuid, String message) {
+        //TODO add jedis pubsub
+    }
+
 }

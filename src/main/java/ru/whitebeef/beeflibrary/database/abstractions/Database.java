@@ -26,6 +26,10 @@ public abstract class Database {
         return databases.get(plugin.getName() + ":" + name);
     }
 
+    public static Database getDatabase(String pluginName, String name) {
+        return databases.get(pluginName + ":" + name);
+    }
+
     public static List<Database> getDatabases(Plugin plugin) {
         return new HashSet<>(databases.entrySet()).stream()
                 .filter(entry -> entry.getKey().startsWith(plugin.getName() + ":"))
@@ -42,10 +46,6 @@ public abstract class Database {
     private final Integer port;
     private final String SQL;
     private final Dialect dialect;
-
-    public Database(Plugin plugin) {
-        this(plugin, "database");
-    }
 
     public Database(Plugin plugin, String databasePath) {
         ConfigurationSection databaseSection = plugin.getConfig().getConfigurationSection(databasePath);
@@ -158,5 +158,16 @@ public abstract class Database {
 
     public Dialect getDialect() {
         return dialect;
+    }
+
+    @Override
+    public String toString() {
+        return "Database{" +
+                "tables=" + tables +
+                ", host='" + host + '\'' +
+                ", database='" + database + '\'' +
+                ", port=" + port +
+                ", dialect=" + dialect +
+                '}';
     }
 }

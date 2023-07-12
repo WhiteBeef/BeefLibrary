@@ -35,13 +35,21 @@ public class PlayerInetUtils {
         if (socketAddress == null) {
             throw new IllegalStateException("Player with name " + player.getName() + " has not inet socket address");
         }
-        instance.cacheUuids.put(player.getUniqueId(), socketAddress.getHostString());
+        if (!JedisUtils.isJedisEnabled()) {
+            instance.cacheUuids.put(player.getUniqueId(), socketAddress.getHostString());
+        } else {
+            JedisUtils.jedisSet(BeefLibrary.getInstance(), "cacheIPs:" + player.getUniqueId(), socketAddress.getHostString());
+        }
         return socketAddress.getHostString();
     }
 
     @Nullable
     public static String getIP(UUID playerUuid) {
-        return instance.cacheUuids.get(playerUuid);
+        if (!JedisUtils.isJedisEnabled()) {
+            return instance.cacheUuids.get(playerUuid);
+        } else {
+            return JedisUtils.jedisGet(BeefLibrary.getInstance(), "cacheIPs:" + playerUuid);
+        }
     }
 
     public static Set<UUID> getPlayersWithSimilarIp(Player player) {

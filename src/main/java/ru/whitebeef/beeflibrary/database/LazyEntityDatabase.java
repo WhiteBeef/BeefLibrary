@@ -2,7 +2,6 @@ package ru.whitebeef.beeflibrary.database;
 
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
-import ru.whitebeef.beeflibrary.BeefLibrary;
 import ru.whitebeef.beeflibrary.database.abstractions.Database;
 import ru.whitebeef.beeflibrary.entites.LazyEntity;
 import ru.whitebeef.beeflibrary.utils.GsonUtils;
@@ -15,17 +14,9 @@ import java.sql.Statement;
 import java.util.UUID;
 
 public class LazyEntityDatabase extends Database {
-    private static LazyEntityDatabase instance;
 
-    public static LazyEntityDatabase getInstance() {
-        return instance;
-    }
-
-
-    public LazyEntityDatabase() {
-        super(BeefLibrary.getInstance());
-
-        instance = this;
+    public LazyEntityDatabase(Plugin plugin, String databasePath) {
+        super(plugin, databasePath);
     }
 
 

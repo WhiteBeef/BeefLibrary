@@ -129,10 +129,22 @@ public class PAPIUtils {
     public static Component replaceBiPlaceholders(Component component, CommandSender sender, CommandSender recipient) {
         component = component
                 .replaceText(TextReplacementConfig.builder()
-                        .match("%(sender|recipient){1}\\-([\\w\\-]+)%")
+                        .match("%(sender|recipient){1}\\-([\\w\\-\\_]+)%")
                         .replacement((matchResult, builder) -> {
                             MessageFormatter formatter = MessageFormatter.of("%" + matchResult.group(2) + "%");
-                            return matchResult.group(1).equals("sender") ? formatter.toComponent(sender) : formatter.toComponent(recipient);
+                            if (matchResult.group(1).equals("sender")) {
+                                if (sender != null) {
+                                    return formatter.toComponent(sender);
+                                } else {
+                                    return Component.text(matchResult.group());
+                                }
+                            } else {
+                                if (recipient != null) {
+                                    return formatter.toComponent(recipient);
+                                } else {
+                                    return Component.text(matchResult.group());
+                                }
+                            }
                         })
                         .build());
         return component;
