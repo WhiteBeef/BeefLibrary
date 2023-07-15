@@ -7,6 +7,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import ru.whitebeef.beeflibrary.entites.LazyEntity;
 import ru.whitebeef.beeflibrary.utils.PlayerInetUtils;
+import ru.whitebeef.beeflibrary.utils.PlayerNameUtils;
 
 public class PlayerJoinQuitHandler implements Listener {
 
@@ -15,6 +16,7 @@ public class PlayerJoinQuitHandler implements Listener {
         LazyEntity.getRegisteredPluginNames().forEach(pluginName ->
                 LazyEntity.lazyLoad(Bukkit.getPluginManager().getPlugin(pluginName), event.getPlayer().getUniqueId()));
         PlayerInetUtils.getInstance().addPlayer(event.getPlayer());
+        PlayerNameUtils.getImplementation().addPlayer(event.getPlayer());
     }
 
     @EventHandler
@@ -24,6 +26,7 @@ public class PlayerJoinQuitHandler implements Listener {
                 LazyEntity.unload(Bukkit.getPluginManager().getPlugin(pluginName), event.getPlayer().getUniqueId()));
 
         PlayerInetUtils.getInstance().removePlayer(event.getPlayer());
+        PlayerNameUtils.getImplementation().removePlayer(event.getPlayer());
     }
 
 }

@@ -28,6 +28,7 @@ import ru.whitebeef.beeflibrary.placeholderapi.PAPIUtils;
 import ru.whitebeef.beeflibrary.utils.ItemUtils;
 import ru.whitebeef.beeflibrary.utils.JedisUtils;
 import ru.whitebeef.beeflibrary.utils.PlayerInetUtils;
+import ru.whitebeef.beeflibrary.utils.PlayerNameUtils;
 import ru.whitebeef.beeflibrary.utils.ScheduleUtils;
 import ru.whitebeef.beeflibrary.utils.SoundType;
 
@@ -80,6 +81,7 @@ public final class BeefLibrary extends JavaPlugin {
 
         new JedisUtils();
         new PlayerInetUtils();
+        PlayerNameUtils.init();
 
         ScheduleUtils.runTaskLater(this, () -> {
             if (Bukkit.getPluginManager().isPluginEnabled("PlugManX")) {
