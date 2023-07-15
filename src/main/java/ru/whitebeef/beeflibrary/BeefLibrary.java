@@ -93,7 +93,7 @@ public final class BeefLibrary extends JavaPlugin {
                     }
                 }
             }
-        }, 10L);
+        }, 30L);
 
         LazyEntity.startLazySaveTask();
 
