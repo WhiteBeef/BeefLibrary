@@ -143,9 +143,9 @@
         <dependency>
             <groupId>com.rylinaux</groupId>
             <artifactId>PlugMan</artifactId>
-            <version>2.2.9</version>
+            <version>2.3.3</version>
             <scope>system</scope>
-            <systemPath>C:/Users/white/Downloads/PlugManX.jar</systemPath>
+            <systemPath>${project.basedir}/libraries/PlugManX.jar</systemPath>
         </dependency>
     </dependencies>
 </project>
