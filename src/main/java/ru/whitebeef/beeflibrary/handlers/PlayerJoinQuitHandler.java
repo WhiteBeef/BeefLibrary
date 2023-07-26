@@ -23,7 +23,7 @@ public class PlayerJoinQuitHandler implements Listener {
     public void onPlayerQuit(PlayerQuitEvent event) {
 
         LazyEntity.getRegisteredPluginNames().forEach(pluginName ->
-                LazyEntity.unload(Bukkit.getPluginManager().getPlugin(pluginName), event.getPlayer().getUniqueId()));
+                LazyEntity.unloadAll(Bukkit.getPluginManager().getPlugin(pluginName), event.getPlayer().getUniqueId()));
 
         PlayerInetUtils.getInstance().removePlayer(event.getPlayer());
         PlayerNameUtils.getImplementation().removePlayer(event.getPlayer());

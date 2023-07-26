@@ -4,6 +4,7 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
 import ru.whitebeef.beeflibrary.database.abstractions.Database;
 import ru.whitebeef.beeflibrary.entites.LazyEntity;
+import ru.whitebeef.beeflibrary.entites.LazyEntityData;
 import ru.whitebeef.beeflibrary.utils.GsonUtils;
 
 import java.sql.Connection;
@@ -15,8 +16,13 @@ import java.util.UUID;
 
 public class LazyEntityDatabase extends Database {
 
-    public LazyEntityDatabase(Plugin plugin, String databasePath) {
+    private final Class<? extends LazyEntity> lazyEntityClass;
+    private final Class<? extends LazyEntityData> lazyEntityDataClass;
+
+    public LazyEntityDatabase(Plugin plugin, String databasePath, Class<? extends LazyEntity> lazyEntityClass, Class<? extends LazyEntityData> lazyEntityDataClass) {
         super(plugin, databasePath);
+        this.lazyEntityClass = lazyEntityClass;
+        this.lazyEntityDataClass = lazyEntityDataClass;
     }
 
 
@@ -29,10 +35,9 @@ public class LazyEntityDatabase extends Database {
              Statement statement = connection.createStatement();
              ResultSet rs = statement.executeQuery(SQL)) {
             if (rs.next()) {
-                var pair = LazyEntity.getRegisteredTypes(plugin);
                 try {
-                    lazyEntity = pair.left().getDeclaredConstructor(Plugin.class, UUID.class, pair.right())
-                            .newInstance(plugin, entityUuid, GsonUtils.parseJSON(rs.getString("data"), pair.right()));
+                    lazyEntity = lazyEntityClass.getDeclaredConstructor(Plugin.class, UUID.class, lazyEntityDataClass)
+                            .newInstance(plugin, entityUuid, GsonUtils.parseJSON(rs.getString("data"), lazyEntityDataClass));
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
