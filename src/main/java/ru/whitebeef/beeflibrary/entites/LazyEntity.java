@@ -24,6 +24,8 @@ import java.util.concurrent.TimeUnit;
 
 public abstract class LazyEntity {
     private static final Map<String, Map<Class<? extends LazyEntity>, Class<? extends LazyEntityData>>> registeredTypes = new HashMap<>();
+    private static final Map<String, Map<Class<? extends LazyEntity>, String>> registeredLazyDatabaseNames = new HashMap<>();
+
     private static final Map<String, Map<UUID, Map<Class<? extends LazyEntity>, LazyEntity>>> loadedEntities = new HashMap<>();
     private static final Map<String, Set<LazyEntity>> toSave = new HashMap<>();
 
@@ -32,12 +34,13 @@ public abstract class LazyEntity {
 
     public static void registerLazyEntityType(@NotNull Plugin plugin, @NotNull Class<? extends LazyEntity> lazyEntityClass,
                                               @NotNull Class<? extends LazyEntityData> lazyEntityDataClass, String databasePath) {
-        registeredTypes.computeIfAbsent(plugin.getName(), k -> new HashMap<>()).put(lazyEntityClass, lazyEntityDataClass);
-        new LazyEntityDatabase(plugin, databasePath, lazyEntityClass, lazyEntityDataClass)
+        Database database = new LazyEntityDatabase(plugin, databasePath, lazyEntityClass, lazyEntityDataClass)
                 .addTable(new Table("LazyEntities")
                         .addColumn(new Column("uuid", "VARCHAR(65) PRIMARY KEY"))
-                        .addColumn(new Column("data", "TEXT"))
-                ).setup();
+                        .addColumn(new Column("data", "TEXT")));
+        database.setup();
+        registeredTypes.computeIfAbsent(plugin.getName(), k -> new HashMap<>()).put(lazyEntityClass, lazyEntityDataClass);
+        registeredLazyDatabaseNames.computeIfAbsent(plugin.getName(), k -> new HashMap<>()).put(LazyEntity.class, database.getDatabaseName());
     }
 
     public static Set<String> getRegisteredPluginNames() {
@@ -164,7 +167,11 @@ public abstract class LazyEntity {
         if (lazyEntity != null) {
             return lazyEntity;
         }
-        lazyEntity = ((LazyEntityDatabase) Database.getDatabase(plugin, "LazyEntity")).getLazyEntity(plugin, entityUuid);
+        String databaseName = registeredLazyDatabaseNames.getOrDefault(plugin.getName(), new HashMap<>()).get(lazyEntityClass);
+        if(databaseName == null){
+            throw new RuntimeException("Unable to found LazyEntity database");
+        }
+        lazyEntity = ((LazyEntityDatabase) Database.getDatabase(plugin, databaseName)).getLazyEntity(plugin, entityUuid);
 
         if (lazyEntity != null) {
             addCache(plugin, lazyEntity);

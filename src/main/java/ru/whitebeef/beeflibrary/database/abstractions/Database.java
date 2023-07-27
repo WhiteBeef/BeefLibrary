@@ -160,6 +160,11 @@ public abstract class Database {
         return dialect;
     }
 
+    public String getDatabaseName() {
+        return database;
+    }
+
+
     @Override
     public String toString() {
         return "Database{" +
