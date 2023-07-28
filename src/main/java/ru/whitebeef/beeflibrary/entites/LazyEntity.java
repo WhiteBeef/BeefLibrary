@@ -40,7 +40,7 @@ public abstract class LazyEntity {
                         .addColumn(new Column("data", "TEXT")));
         database.setup();
         registeredTypes.computeIfAbsent(plugin.getName(), k -> new HashMap<>()).put(lazyEntityClass, lazyEntityDataClass);
-        registeredLazyDatabaseNames.computeIfAbsent(plugin.getName(), k -> new HashMap<>()).put(LazyEntity.class, database.getDatabaseName());
+        registeredLazyDatabaseNames.computeIfAbsent(plugin.getName(), k -> new HashMap<>()).put(lazyEntityClass, database.getDatabaseName());
     }
 
     public static Set<String> getRegisteredPluginNames() {
@@ -168,7 +168,7 @@ public abstract class LazyEntity {
             return lazyEntity;
         }
         String databaseName = registeredLazyDatabaseNames.getOrDefault(plugin.getName(), new HashMap<>()).get(lazyEntityClass);
-        if(databaseName == null){
+        if (databaseName == null) {
             throw new RuntimeException("Unable to found LazyEntity database");
         }
         lazyEntity = ((LazyEntityDatabase) Database.getDatabase(plugin, databaseName)).getLazyEntity(plugin, entityUuid);
@@ -227,7 +227,11 @@ public abstract class LazyEntity {
     }
 
     public boolean save() {
-        return ((LazyEntityDatabase) Database.getDatabase(pluginName, "LazyEntity")).saveLazyEntity(this);
+        String databaseName = registeredLazyDatabaseNames.getOrDefault(getPluginName(), new HashMap<>()).get(super.getClass());
+        if (databaseName == null) {
+            throw new RuntimeException("Unable to found LazyEntity database");
+        }
+        return ((LazyEntityDatabase) Database.getDatabase(pluginName, databaseName)).saveLazyEntity(this);
     }
 
     @Override

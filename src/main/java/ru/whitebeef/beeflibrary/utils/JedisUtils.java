@@ -23,6 +23,7 @@ public class JedisUtils {
         return instance;
     }
 
+    private JedisPooled jedisSubscribe = null;
     private JedisPooled jedis = null;
 
 
@@ -37,6 +38,9 @@ public class JedisUtils {
         if (config.getBoolean("redis.enable")) {
             jedis = new JedisPooled(config.getString("redis.host"), config.getInt("redis.port"), config.getString("redis.user"), config.getString("redis.password"));
         }
+        if (config.getBoolean("redis.enable")) {
+            jedisSubscribe = new JedisPooled(config.getString("redis.host"), config.getInt("redis.port"), config.getString("redis.user"), config.getString("redis.password"));
+        }
     }
 
     public static boolean isJedisEnabled() {
@@ -48,6 +52,13 @@ public class JedisUtils {
             throw new RuntimeException("Jedis is not enabled!");
         }
         return instance.jedis;
+    }
+
+    public static JedisPooled getJedisSubscribe() {
+        if (!isJedisEnabled()) {
+            throw new RuntimeException("Jedis is not enabled!");
+        }
+        return instance.jedisSubscribe;
     }
 
     public static String formatJedisKey(Plugin plugin, String key) {
@@ -192,7 +203,7 @@ public class JedisUtils {
             throw new RuntimeException("Jedis is not enabled!");
         }
         registeredPubSubs.computeIfAbsent(plugin.getName(), k -> new HashMap<>()).put(formatJedisKey(plugin, channelName), jedisPubSub);
-        ScheduleUtils.runTaskAsynchronously(() -> JedisUtils.getJedis().subscribe(jedisPubSub, formatJedisKey(plugin, channelName)));
+        ScheduleUtils.runTaskAsynchronously(() -> JedisUtils.getJedisSubscribe().subscribe(jedisPubSub, formatJedisKey(plugin, channelName)));
     }
 
     /**
@@ -202,7 +213,7 @@ public class JedisUtils {
         if (!isJedisEnabled()) {
             throw new RuntimeException("Jedis is not enabled!");
         }
-        getJedis().publish(formatJedisKey(plugin, channelName), BeefLibrary.getServerUuid() + ";" + message);
+        getJedisSubscribe().publish(formatJedisKey(plugin, channelName), BeefLibrary.getServerUuid() + ";" + message);
     }
 
     public static void unSubscribe(Plugin plugin) {

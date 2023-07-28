@@ -3,7 +3,6 @@ package ru.whitebeef.beeflibrary.chat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import ru.whitebeef.beeflibrary.placeholderapi.PAPIUtils;
 import ru.whitebeef.beeflibrary.utils.Color;
@@ -35,7 +34,7 @@ public class MessageFormatter {
         if (sender == null) {
             return LegacyComponentSerializer.legacySection().deserialize(Color.colorize(message));
         }
-        message = Color.colorize(message);
+        message = Color.colorize(PAPIUtils.setPlaceholders(sender, message));
         return PAPIUtils.setPlaceholders(sender, LegacyComponentSerializer.legacySection().deserialize(message));
     }
 
