@@ -2,6 +2,7 @@ package ru.whitebeef.beeflibrary.inventory.deprecated;
 
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+
 @Deprecated
 public interface ClickHandler {
 

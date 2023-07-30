@@ -1,14 +1,9 @@
 package ru.whitebeef.beeflibrary.utils;
 
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 
 public class InventoryUtils {
     public static boolean canBeAddedFully(ItemStack[] storageContents, ItemStack[] itemStacks) {
@@ -24,6 +19,7 @@ public class InventoryUtils {
         }
         return true;
     }
+
     public static int addAsMaxAsPossible(@NotNull Inventory inventory,
                                          int slot, @NotNull ItemStack toAdd, int limit) {
         ItemStack base = inventory.getItem(slot);

@@ -75,6 +75,6 @@ public class Cooldown {
 
     public enum Type {
         TICKS,
-        MILLIS;
+        MILLIS
     }
 }

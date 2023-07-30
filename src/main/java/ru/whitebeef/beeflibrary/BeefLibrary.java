@@ -69,7 +69,8 @@ public final class BeefLibrary extends JavaPlugin {
 
         tryHookPlaceholderAPI();
 
-        registerListeners(this, new OldInventoryGUIHandler(), new InventoryGUIHandler(), new PluginHandler(), new PlayerJoinQuitHandler());
+        registerListeners(this, new OldInventoryGUIHandler(), new InventoryGUIHandler(),
+                new PluginHandler(), new PlayerJoinQuitHandler());
         PAPIUtils.unregisterAllPlaceholders();
 
         MessageType.registerTypesSection(this, "messages");

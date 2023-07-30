@@ -15,7 +15,7 @@ import java.util.Set;
 
 public class JedisUtils {
 
-    private static Map<String, Map<String, JedisPubSub>> registeredPubSubs = new HashMap<>();
+    private static final Map<String, Map<String, JedisPubSub>> registeredPubSubs = new HashMap<>();
 
     private static JedisUtils instance;
 
