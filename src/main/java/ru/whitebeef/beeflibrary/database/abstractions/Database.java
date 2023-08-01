@@ -113,37 +113,41 @@ public abstract class Database {
         }
     }
 
-    private synchronized void connect() {
+    /**
+     * Returns connection to the database.
+     * If connection isn't established yet this method will create one.
+     *
+     * @param forceReconnect if true will close existing connection to establish a new one
+     * @return a {@link Connection}
+     */
+    public synchronized final Connection getConnection(boolean forceReconnect) {
         try {
-            if (!connection.isClosed()) {
-                return;
-            }
-        } catch (Exception ignored) {
-        }
-        try {
-            connection = DriverManager.getConnection(SQL, username, password);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    public synchronized final Connection getConnection(boolean forceConnect) {
-        if (forceConnect) {
-            connect();
-        }
-        return getConnection();
-    }
-
-    public synchronized final Connection getConnection() {
-        try {
-            if (connection == null || connection.isClosed()) {
-                connect();
+            // Close existing connection if
+            if (forceReconnect && connection != null && !connection.isClosed()) {
+                connection.close();
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            connect();
+        }
+        try {
+            if (connection == null || connection.isClosed()) {
+                connection = DriverManager.getConnection(SQL, username, password);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return connection;
+    }
+
+    /**
+     * Returns connection to the database.
+     * If connection isn't established yet this method will create one.
+     * This method won't close the existing connections.
+     *
+     * @return a {@link Connection}
+     */
+    public synchronized final Connection getConnection() {
+        return getConnection(false);
     }
 
     public final Database addTable(Table table) {
