@@ -11,7 +11,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.UUID;
 
 public class LazyEntityDatabase extends Database {
@@ -32,8 +31,8 @@ public class LazyEntityDatabase extends Database {
 
         String SQL = "SELECT * FROM LazyEntities WHERE uuid = '" + entityUuid + "' LIMIT 1;";
         try (Connection connection = getConnection();
-             Statement statement = connection.createStatement();
-             ResultSet rs = statement.executeQuery(SQL)) {
+             PreparedStatement statement = connection.prepareStatement(SQL);
+             ResultSet rs = statement.executeQuery()) {
             if (rs.next()) {
                 try {
                     lazyEntity = lazyEntityClass.getDeclaredConstructor(Plugin.class, UUID.class, lazyEntityDataClass)
