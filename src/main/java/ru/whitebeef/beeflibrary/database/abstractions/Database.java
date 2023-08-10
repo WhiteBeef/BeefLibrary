@@ -64,7 +64,7 @@ public abstract class Database {
                 } catch (ClassNotFoundException e) {
                     throw new RuntimeException(e);
                 }
-                SQL = "jdbc:mysql://" + host + ":" + port + "/" + database + "?useUnicode=true&passwordCharacterEncoding=utf8&characterEncoding=utf8&useSSL=false&useTimezone=true&useLegacyDatetimeCode=false&serverTimezone=UTC";
+                SQL = "jdbc:mysql://" + host + ":" + port + "/" + database + "?useUnicode=true&autoReconnect=true&passwordCharacterEncoding=utf8&characterEncoding=utf8&useSSL=false&useTimezone=true&useLegacyDatetimeCode=false&serverTimezone=UTC";
             }
             case SQLITE -> {
                 File dataFolder = new File(plugin.getDataFolder(), database + ".db");

@@ -26,7 +26,7 @@ public class LazyEntityDatabase extends Database {
 
 
     @Nullable
-    public LazyEntity getLazyEntity(Plugin plugin, UUID entityUuid) {
+    public synchronized LazyEntity getLazyEntity(Plugin plugin, UUID entityUuid) {
         LazyEntity lazyEntity = null;
 
         String SQL = "SELECT * FROM LazyEntities WHERE uuid = '" + entityUuid + "' LIMIT 1;";
@@ -38,7 +38,7 @@ public class LazyEntityDatabase extends Database {
                     lazyEntity = lazyEntityClass.getDeclaredConstructor(Plugin.class, UUID.class, lazyEntityDataClass)
                             .newInstance(plugin, entityUuid, GsonUtils.parseJSON(rs.getString("data"), lazyEntityDataClass));
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    return null;
                 }
             }
         } catch (SQLException ex) {
@@ -47,7 +47,7 @@ public class LazyEntityDatabase extends Database {
         return lazyEntity;
     }
 
-    public boolean saveLazyEntity(LazyEntity lazyEntity) {
+    public synchronized boolean saveLazyEntity(LazyEntity lazyEntity) {
         boolean saved = true;
         String SQL = switch (getDialect()) {
             case SQLITE -> "INSERT INTO LazyEntities (uuid, data) VALUES (?,?) " +

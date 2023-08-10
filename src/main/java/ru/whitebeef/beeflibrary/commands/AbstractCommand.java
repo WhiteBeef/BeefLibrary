@@ -73,8 +73,8 @@ public abstract class AbstractCommand extends BukkitCommand {
 
     public final AbstractCommand addSubCommand(AbstractCommand abstractCommand) {
         subCommands.put(abstractCommand.getName(), abstractCommand);
-        for (String alias : abstractCommand.getAliases()) {
-            subCommands.put(alias, abstractCommand);
+        for (Alias alias : abstractCommand.getCustomAliases()) {
+            subCommands.put(alias.getName(), abstractCommand);
         }
         return this;
     }
@@ -93,6 +93,10 @@ public abstract class AbstractCommand extends BukkitCommand {
 
     public final int getMinArgsCount() {
         return minArgsCount;
+    }
+
+    public final List<Alias> getCustomAliases() {
+        return new ArrayList<>(aliases);
     }
 
     @Nullable
@@ -298,6 +302,9 @@ public abstract class AbstractCommand extends BukkitCommand {
 
         public Builder addSubCommand(AbstractCommand command) {
             subCommands.put(command.getName(), command);
+            for (Alias alias : command.getCustomAliases()) {
+                subCommands.put(alias.getName(), command);
+            }
             return this;
         }
 

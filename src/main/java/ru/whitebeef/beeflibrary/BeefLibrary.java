@@ -92,7 +92,11 @@ public final class BeefLibrary extends JavaPlugin {
                         continue;
                     }
                     if (!plugin.isEnabled()) {
-                        PlugMan.getInstance().getPluginUtil().reload(plugin);
+                        try {
+                            PlugMan.getInstance().getPluginUtil().reload(plugin);
+                        } catch (Exception exception) {
+                            getLogger().severe("Error while loading plugin " + plugin.getName()+". Skipped!");
+                        }
                     }
                 }
             }

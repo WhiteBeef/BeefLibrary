@@ -14,7 +14,7 @@ public class Alias {
     private final boolean show;
 
     private Alias(String name, boolean show) {
-        this.name = name;
+        this.name = name.toLowerCase();
         this.show = show;
     }
 

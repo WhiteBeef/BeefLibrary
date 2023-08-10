@@ -221,11 +221,19 @@ public class JedisUtils {
             throw new RuntimeException("Jedis is not enabled!");
         }
 
-        registeredPubSubs.getOrDefault(plugin.getName(), new HashMap<>()).forEach((key, value) -> value.unsubscribe(key));
+        registeredPubSubs.getOrDefault(plugin.getName(), new HashMap<>()).forEach((key, value) -> {
+            if (value.isSubscribed()) {
+                value.unsubscribe(key);
+            }
+        });
     }
 
     public static void unSubscribeAll() {
-        registeredPubSubs.forEach((s, jedisPubSubs) -> jedisPubSubs.forEach((key, value) -> value.unsubscribe(key)));
+        registeredPubSubs.forEach((s, jedisPubSubs) -> jedisPubSubs.forEach((key, value) -> {
+            if (value.isSubscribed()) {
+                value.unsubscribe(key);
+            }
+        }));
 
     }
 

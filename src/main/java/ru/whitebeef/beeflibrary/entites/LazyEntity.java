@@ -104,7 +104,7 @@ public abstract class LazyEntity {
     @Nullable
     private static LazyEntity getCache(@NotNull Plugin plugin, @NotNull UUID entityUuid, Class<? extends LazyEntity> lazyEntityClass) {
         if (!JedisUtils.isJedisEnabled()) {
-            return loadedEntities.getOrDefault(plugin.getName(), new HashMap<>()).get(entityUuid).get(lazyEntityClass);
+            return loadedEntities.getOrDefault(plugin.getName(), new HashMap<>()).getOrDefault(entityUuid, new HashMap<>()).get(lazyEntityClass);
         }
 
         Class<? extends LazyEntityData> lazyEntityDataClass = registeredTypes.getOrDefault(plugin.getName(), new HashMap<>())
