@@ -9,10 +9,14 @@ public class UUIDUtils {
     }
 
     public static UUID longToUuid(long value) {
-        return UUID.nameUUIDFromBytes(BigInteger.valueOf(value).toByteArray());
+        return new UUID(0, value);
     }
 
-    public static long[] uuidToInt(UUID uuid) {
+    public static long[] uuidToLongArr(UUID uuid) {
         return new long[]{uuid.getMostSignificantBits(), uuid.getLeastSignificantBits()};
+    }
+
+    public static long uuidToLeastLong(UUID uuid) {
+        return uuid.getLeastSignificantBits();
     }
 }
