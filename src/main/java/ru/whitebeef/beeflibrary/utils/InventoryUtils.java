@@ -5,6 +5,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+
 public class InventoryUtils {
     public static boolean canBeAddedFully(ItemStack[] storageContents, ItemStack[] itemStacks) {
         Inventory tempInv = Bukkit.createInventory(null, storageContents.length);
@@ -18,6 +20,10 @@ public class InventoryUtils {
             }
         }
         return true;
+    }
+
+    public static boolean canBeAddedFully(ItemStack[] storageContents, List<ItemStack> itemStacks) {
+        return canBeAddedFully(storageContents, itemStacks.toArray(new ItemStack[0]));
     }
 
     public static int addAsMaxAsPossible(@NotNull Inventory inventory,

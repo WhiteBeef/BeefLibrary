@@ -42,7 +42,7 @@ public class LazyEntityDatabase extends Database {
                 }
             }
         } catch (SQLException ex) {
-            ex.printStackTrace();
+            return null;
         }
         return lazyEntity;
     }

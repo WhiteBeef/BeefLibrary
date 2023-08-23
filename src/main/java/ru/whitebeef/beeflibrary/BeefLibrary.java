@@ -60,6 +60,7 @@ public final class BeefLibrary extends JavaPlugin {
 
     @Override
     public void onEnable() {
+
         BeefLibrary.instance = this;
         tryLoadWithFolia();
 
@@ -95,7 +96,7 @@ public final class BeefLibrary extends JavaPlugin {
                         try {
                             PlugMan.getInstance().getPluginUtil().reload(plugin);
                         } catch (Exception exception) {
-                            getLogger().severe("Error while loading plugin " + plugin.getName()+". Skipped!");
+                            getLogger().severe("Error    while loading plugin " + plugin.getName() + ". Skipped!");
                         }
                     }
                 }
