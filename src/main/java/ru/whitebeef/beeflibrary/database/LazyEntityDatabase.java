@@ -30,8 +30,8 @@ public class LazyEntityDatabase extends Database {
         LazyEntity lazyEntity = null;
 
         String SQL = "SELECT * FROM LazyEntities WHERE uuid = '" + entityUuid + "' LIMIT 1;";
-        try (Connection connection = getConnection();
-             PreparedStatement statement = connection.prepareStatement(SQL);
+        Connection connection = getConnection();
+        try (PreparedStatement statement = connection.prepareStatement(SQL);
              ResultSet rs = statement.executeQuery()) {
             if (rs.next()) {
                 try {
@@ -55,8 +55,8 @@ public class LazyEntityDatabase extends Database {
             case MYSQL -> "INSERT INTO LazyEntities (uuid, data) VALUES (?,?) " +
                     "ON DUPLICATE KEY UPDATE data = ?";
         };
-        try (Connection connection = getConnection();
-             PreparedStatement statement = connection.prepareStatement(SQL)) {
+        Connection connection = getConnection();
+        try (PreparedStatement statement = connection.prepareStatement(SQL)) {
 
             statement.setString(1, lazyEntity.getEntityUuid().toString());
             String data = GsonUtils.parseObject(lazyEntity.getData());
