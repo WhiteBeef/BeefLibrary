@@ -1,6 +1,7 @@
 package ru.whitebeef.beeflibrary.utils;
 
 import net.kyori.adventure.bossbar.BossBar;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -9,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import ru.whitebeef.beeflibrary.BeefLibrary;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class BossBarUtils implements Listener {
@@ -19,10 +21,30 @@ public class BossBarUtils implements Listener {
         return instance;
     }
 
-    private HashMap<UUID, BossBar> showedBossBars = new HashMap<>();
+    private final HashMap<UUID, BossBar> showedBossBars = new HashMap<>();
+    private final Map<UUID, Long> toRemove = new HashMap<>();
 
     public BossBarUtils() {
         instance = this;
+
+        ScheduleUtils.scheduleSyncRepeatingTask(BeefLibrary.getInstance(), () -> {
+            new HashMap<>(toRemove).forEach((uuid, timeToRemove) -> {
+                if (timeToRemove > System.currentTimeMillis()) {
+                    return;
+                }
+                if (!showedBossBars.containsKey(uuid)) {
+                    return;
+                }
+                Player player = Bukkit.getPlayer(uuid);
+                if (player == null || !player.isOnline()) {
+                    toRemove.remove(uuid);
+                    return;
+                }
+                player.hideBossBar(showedBossBars.get(uuid));
+                toRemove.remove(uuid);
+                showedBossBars.remove(uuid);
+            });
+        }, 20L, 20L);
     }
 
 
@@ -39,14 +61,19 @@ public class BossBarUtils implements Listener {
         showedBossBars.put(player.getUniqueId(), bossBar);
     }
 
-    public void sendBossBar(Player player, BossBar bossBar, long timeTicks) {
-        if (showedBossBars.containsKey(player.getUniqueId())) {
-            player.hideBossBar(showedBossBars.get(player.getUniqueId()));
+    public void sendBossBar(Player player, BossBar bossBar, long millis) {
+        BossBar showedBossBar = showedBossBars.get(player.getUniqueId());
+        if (showedBossBar != null) {
+            if (showedBossBar == bossBar) {
+                toRemove.put(player.getUniqueId(), System.currentTimeMillis() + millis);
+                return;
+            }
+            player.hideBossBar(showedBossBar);
         }
         player.showBossBar(bossBar);
 
         showedBossBars.put(player.getUniqueId(), bossBar);
-        ScheduleUtils.runTaskLater(BeefLibrary.getInstance(), () -> player.hideBossBar(bossBar), timeTicks);
+        toRemove.put(player.getUniqueId(), System.currentTimeMillis() + millis);
     }
 
     @Nullable

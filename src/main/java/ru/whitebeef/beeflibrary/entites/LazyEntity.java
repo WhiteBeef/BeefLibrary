@@ -172,7 +172,6 @@ public abstract class LazyEntity {
             throw new RuntimeException("Unable to found LazyEntity database");
         }
         lazyEntity = ((LazyEntityDatabase) Database.getDatabase(plugin, databaseName)).getLazyEntity(plugin, entityUuid);
-
         if (lazyEntity != null) {
             addCache(plugin, lazyEntity);
             return lazyEntity;
