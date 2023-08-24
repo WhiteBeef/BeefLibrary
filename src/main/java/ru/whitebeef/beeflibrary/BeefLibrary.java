@@ -25,6 +25,7 @@ import ru.whitebeef.beeflibrary.inventory.deprecated.OldInventoryGUIHandler;
 import ru.whitebeef.beeflibrary.inventory.deprecated.OldInventoryGUIManager;
 import ru.whitebeef.beeflibrary.inventory.impl.UpdatableInventoryGUI;
 import ru.whitebeef.beeflibrary.placeholderapi.PAPIUtils;
+import ru.whitebeef.beeflibrary.utils.BossBarUtils;
 import ru.whitebeef.beeflibrary.utils.ItemUtils;
 import ru.whitebeef.beeflibrary.utils.JedisUtils;
 import ru.whitebeef.beeflibrary.utils.PlayerInetUtils;
@@ -71,7 +72,7 @@ public final class BeefLibrary extends JavaPlugin {
         tryHookPlaceholderAPI();
 
         registerListeners(this, new OldInventoryGUIHandler(), new InventoryGUIHandler(),
-                new PluginHandler(), new PlayerJoinQuitHandler());
+                new PluginHandler(), new PlayerJoinQuitHandler(), new BossBarUtils());
         PAPIUtils.unregisterAllPlaceholders();
 
         MessageType.registerTypesSection(this, "messages");
