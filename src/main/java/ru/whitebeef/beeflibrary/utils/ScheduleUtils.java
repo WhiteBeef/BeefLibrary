@@ -43,8 +43,9 @@ public class ScheduleUtils {
     public static void scheduleSyncRepeatingTask(Plugin plugin, Runnable runnable, long delay, long period) {
         if (BeefLibrary.getInstance().isFolia()) {
             Bukkit.getGlobalRegionScheduler().runAtFixedRate(BeefLibrary.getInstance(), (scheduledTask) -> runnable.run(), delay, period);
+        } else {
+            Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, runnable, delay, period);
         }
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, runnable, delay, period);
     }
 
     public static void scheduleAsyncRepeatingTask(Plugin plugin, Runnable runnable, long delay, long period) {
