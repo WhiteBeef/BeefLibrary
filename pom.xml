@@ -54,6 +54,10 @@
                             <pattern>redis.clients.jedis</pattern>
                             <shadedPattern>ru.whitebeef.beeflibrary.redis</shadedPattern>
                         </relocation>
+                        <relocation>
+                            <pattern>org.json</pattern>
+                            <shadedPattern>ru.whitebeef.beeflibrary.json</shadedPattern>
+                        </relocation>
                     </relocations>
                     <outputDirectory>C:\plugins\BeefPlugins\${project.name}</outputDirectory>
                     <minimizeJar>true</minimizeJar>
@@ -70,6 +74,7 @@
                                 <includes>
                                     <include>redis.clients:jedis</include>
                                     <include>org.apache.commons:commons-pool2</include>
+                                    <include>org.json:json</include>
                                 </includes>
                             </artifactSet>
                         </configuration>
@@ -134,11 +139,6 @@
             <artifactId>folia-api</artifactId>
             <version>1.19.4-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.reflections</groupId>
-            <artifactId>reflections</artifactId>
-            <version>0.10.2</version>
         </dependency>
         <dependency>
             <groupId>com.rylinaux</groupId>

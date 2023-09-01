@@ -10,6 +10,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import ru.whitebeef.beeflibrary.annotations.AnnotationPreprocess;
+import ru.whitebeef.beeflibrary.annotations.ConfigProperty;
 import ru.whitebeef.beeflibrary.chat.MessageType;
 import ru.whitebeef.beeflibrary.commands.AbstractCommand;
 import ru.whitebeef.beeflibrary.commands.SimpleCommand;
@@ -57,7 +59,8 @@ public final class BeefLibrary extends JavaPlugin {
     private final Map<String, Set<PlaceholderExpansion>> registeredExpansions = new HashMap<>();
     private boolean placeholderAPIHooked = false;
     private boolean isFolia = false;
-    private boolean debug = false;
+    @ConfigProperty("debug")
+    private boolean debug;
 
     @Override
     public void onEnable() {
@@ -67,12 +70,14 @@ public final class BeefLibrary extends JavaPlugin {
 
         loadConfig(this);
 
+        System.setProperty("org.slf4j.simpleLogger.log.org.reflections", "off");
+
         generateServerUuid();
 
         tryHookPlaceholderAPI();
 
         registerListeners(this, new OldInventoryGUIHandler(), new InventoryGUIHandler(),
-                new PluginHandler(), new PlayerJoinQuitHandler(), new BossBarUtils());
+                new PluginHandler(), new PlayerJoinQuitHandler(), new BossBarUtils(), new AnnotationPreprocess());
         PAPIUtils.unregisterAllPlaceholders();
 
         MessageType.registerTypesSection(this, "messages");
@@ -97,7 +102,7 @@ public final class BeefLibrary extends JavaPlugin {
                         try {
                             PlugMan.getInstance().getPluginUtil().reload(plugin);
                         } catch (Exception exception) {
-                            getLogger().severe("Error    while loading plugin " + plugin.getName() + ". Skipped!");
+                            getLogger().severe("Error while loading plugin " + plugin.getName() + ". Skipped!");
                         }
                     }
                 }
@@ -106,7 +111,6 @@ public final class BeefLibrary extends JavaPlugin {
 
         LazyEntity.startLazySaveTask();
 
-        debug = getConfig().getBoolean("debug");
     }
 
     /**
