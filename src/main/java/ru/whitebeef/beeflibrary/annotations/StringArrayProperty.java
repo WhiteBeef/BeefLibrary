@@ -7,9 +7,11 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface ConfigProperty {
+public @interface StringArrayProperty {
 
     String value();
+
+    String[] defaultValue() default {""};
 
     LoadType loadType() default LoadType.PRE_ENABLE;
 }

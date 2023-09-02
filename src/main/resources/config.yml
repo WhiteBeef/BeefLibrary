@@ -4,12 +4,11 @@ messages:
   cooldown: "&cСлишком часто! Попробуйте позже!"
   no_permissions: "&cНедостаточно прав!"
   player_not_found: "&cИгрок %player% не найден!"
-  inventorygui_not_found: "Иневнтарь %namespace% не найден!"
+  inventorygui_not_found: "Инвентарь %namespace% не найден!"
 redis:
   enable: false
   host: "127.0.0.1"
   port: 6379
   user: "root"
   password: "password"
-# Supported dialects: SQLite, MySQL
-debug: true
+debug: false

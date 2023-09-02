@@ -11,7 +11,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.whitebeef.beeflibrary.annotations.AnnotationPreprocess;
-import ru.whitebeef.beeflibrary.annotations.ConfigProperty;
+import ru.whitebeef.beeflibrary.annotations.BooleanProperty;
 import ru.whitebeef.beeflibrary.chat.MessageType;
 import ru.whitebeef.beeflibrary.commands.AbstractCommand;
 import ru.whitebeef.beeflibrary.commands.SimpleCommand;
@@ -59,13 +59,17 @@ public final class BeefLibrary extends JavaPlugin {
     private final Map<String, Set<PlaceholderExpansion>> registeredExpansions = new HashMap<>();
     private boolean placeholderAPIHooked = false;
     private boolean isFolia = false;
-    @ConfigProperty("debug")
+    @BooleanProperty(value = "debug")
     private boolean debug;
+
+    @Override
+    public void onLoad() {
+        instance = this;
+    }
 
     @Override
     public void onEnable() {
 
-        BeefLibrary.instance = this;
         tryLoadWithFolia();
 
         loadConfig(this);

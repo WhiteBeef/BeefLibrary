@@ -7,9 +7,11 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface ConfigProperty {
+public @interface BooleanProperty {
 
     String value();
+
+    boolean defaultValue() default false;
 
     LoadType loadType() default LoadType.PRE_ENABLE;
 }

@@ -1,12 +1,14 @@
 package ru.whitebeef.beeflibrary.annotations;
 
 
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.plugin.Plugin;
 import ru.whitebeef.beeflibrary.BeefLibrary;
+import ru.whitebeef.beeflibrary.utils.LoggerUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,6 +21,7 @@ import java.lang.reflect.Modifier;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -32,75 +35,18 @@ public class AnnotationPreprocess implements Listener {
 
     private static AnnotationPreprocess instance;
 
-    public static AnnotationPreprocess getInstance() {
-        return instance;
-    }
-
     public AnnotationPreprocess() {
         instance = this;
+        Arrays.stream(Bukkit.getPluginManager().getPlugins()).forEach(plugin -> scanPlugin(plugin, LoadType.PRE_ENABLE));
     }
 
     @EventHandler
     public void onPluginEnable(PluginEnableEvent event) {
-        Plugin plugin = event.getPlugin();
-        scanPlugin(plugin);
-
+        scanPlugin(event.getPlugin(), LoadType.AFTER_ENABLE);
     }
 
-    public void scanPlugin(Plugin plugin) {
-        if (!plugin.getDescription().getDepend().contains("BeefLibrary") &&
-                !plugin.getDescription().getSoftDepend().contains("BeefLibrary") &&
-                !plugin.getName().equals("BeefLibrary")) {
-            return;
-        }
-        FileConfiguration config = plugin.getConfig();
-        getAnnotatedElements(plugin.getClass().getPackageName(), plugin.getClass().getClassLoader(), ConfigProperty.class).stream().map(annotatedElement -> (Field) annotatedElement)
-                .forEach(field -> {
-                    try {
-                        field.setAccessible(true);
-                        if (Modifier.isStatic(field.getModifiers())) {
-                            field.set(field, config.get(field.getAnnotation(ConfigProperty.class).value()));
-                        } else {
-                            Class<?> clazz = field.getDeclaringClass();
-                            Object obj = Arrays.stream(clazz.getDeclaredMethods())
-                                    .filter(method -> method.getName().equals("getInstance")).findAny().orElseThrow(() -> new RuntimeException("Don't found .getInstance() method")).invoke(clazz);
-                            field.set(obj, config.get(field.getAnnotation(ConfigProperty.class).value()));
-                        }
-                    } catch (Exception exception) {
-                        exception.printStackTrace();
-                    }
-                });
-    }
-
-    private Collection<AnnotatedElement> getAnnotatedElements(String packageName, ClassLoader classLoader, Class<? extends Annotation> annotation) {
-        Set<Class<?>> allClasses = new HashSet<>();
-        try {
-            findClassesByPackage(packageName, classLoader, true, allClasses);
-        } catch (Exception exception) {
-            return Collections.emptyList();
-        }
-        Set<AnnotatedElement> foundElements = new HashSet<>();
-        for (Class<?> clazz : allClasses) {
-            if (clazz.isAnnotationPresent(annotation)) {
-                foundElements.add(clazz);
-            }
-            for (Field field : clazz.getDeclaredFields()) {
-                if (field.isAnnotationPresent(annotation)) {
-                    foundElements.add(field);
-                }
-            }
-            for (Method method : clazz.getDeclaredMethods()) {
-                if (method.isAnnotationPresent(annotation)) {
-                    foundElements.add(method);
-                }
-            }
-            for (Constructor<?> constructor : clazz.getDeclaredConstructors()) {
-                if (constructor.isAnnotationPresent(annotation)) {
-                    foundElements.add(constructor);
-                }
-            }
-        }
-        return foundElements;
+    public static AnnotationPreprocess getInstance() {
+        return instance;
     }
 
     public static void findClassesByPackage(String pkgName, ClassLoader loader,
@@ -115,7 +61,7 @@ public class AnnotationPreprocess implements Listener {
 
         while (urls.hasMoreElements()) {
             URL pkgUrl = urls.nextElement();
-            String urlString = URLDecoder.decode(pkgUrl.getFile(), "UTF-8");
+            String urlString = URLDecoder.decode(pkgUrl.getFile(), StandardCharsets.UTF_8);
             String protocol = pkgUrl.getProtocol().toLowerCase();
             if ("file".equals(protocol)) {
                 File pkgDir = new File(urlString);
@@ -236,5 +182,122 @@ public class AnnotationPreprocess implements Listener {
             return nameWithoutExtension;
         }
         return null;
+    }
+
+    public void scanPlugin(Plugin plugin, LoadType currentLoadType) {
+        if (!plugin.getDescription().getDepend().contains("BeefLibrary") &&
+                !plugin.getDescription().getSoftDepend().contains("BeefLibrary") &&
+                !plugin.getName().equals("BeefLibrary")) {
+            return;
+        }
+        LoggerUtils.debug(BeefLibrary.getInstance(), "Starting annotating plugin " + plugin.getName());
+        BeefLibrary.loadConfig(plugin);
+        FileConfiguration config = plugin.getConfig();
+        getAnnotatedElements(plugin.getClass().getPackageName(), plugin.getClass().getClassLoader(), Set.of(ConfigProperty.class, IntProperty.class, BooleanProperty.class, StringProperty.class)).stream().map(annotatedElement -> (Field) annotatedElement)
+                .forEach(field -> {
+                    try {
+                        field.setAccessible(true);
+                        String path = null;
+                        LoadType loadType = LoadType.PRE_ENABLE;
+                        if (field.isAnnotationPresent(ConfigProperty.class)) {
+                            path = field.getAnnotation(ConfigProperty.class).value();
+                            loadType = field.getAnnotation(ConfigProperty.class).loadType();
+                        }
+                        Object defaultValue = null;
+                        if (field.isAnnotationPresent(IntProperty.class)) {
+                            path = field.getAnnotation(IntProperty.class).value();
+                            defaultValue = field.getAnnotation(IntProperty.class);
+                            loadType = field.getAnnotation(IntProperty.class).loadType();
+                        }
+                        if (field.isAnnotationPresent(BooleanProperty.class)) {
+                            path = field.getAnnotation(BooleanProperty.class).value();
+                            defaultValue = field.getAnnotation(BooleanProperty.class).defaultValue();
+                            loadType = field.getAnnotation(BooleanProperty.class).loadType();
+                        }
+                        if (field.isAnnotationPresent(StringProperty.class)) {
+                            path = field.getAnnotation(StringProperty.class).value();
+                            defaultValue = field.getAnnotation(StringProperty.class).defaultValue();
+                            loadType = field.getAnnotation(StringProperty.class).loadType();
+                        }
+                        if (field.isAnnotationPresent(StringArrayProperty.class)) {
+                            path = field.getAnnotation(StringArrayProperty.class).value();
+                            defaultValue = field.getAnnotation(StringArrayProperty.class).defaultValue();
+                            loadType = field.getAnnotation(StringArrayProperty.class).loadType();
+                        }
+                        if (loadType != currentLoadType) {
+                            return;
+                        }
+                        Object configValue = null;
+                        if (path != null && config.isSet(path)) {
+                            configValue = config.get(path);
+                        }
+                        if (Modifier.isStatic(field.getModifiers())) {
+                            if (configValue != null) {
+                                field.set(field, configValue);
+                            } else {
+                                if (field.get(field) == null) {
+                                    field.set(field, defaultValue);
+                                }
+                            }
+                        } else {
+
+                            Class<?> clazz = field.getDeclaringClass();
+                            Object obj = Arrays.stream(clazz.getDeclaredMethods())
+                                    .filter(method -> method.getName().equals("getInstance")).findAny().orElseThrow(() -> new RuntimeException("Don't found .getInstance() method"))
+                                    .invoke(clazz);
+                            if (obj == null) {
+                                throw new RuntimeException("On try annotating value " + field.getName() + " in " + field.getDeclaringClass().getName() + " getInstance() returns null object. Maybe you need set instance in onLoad()");
+                            }
+                            if (configValue != null) {
+                                field.set(obj, configValue);
+                            } else {
+                                if (field.get(obj) == null) {
+                                    field.set(obj, defaultValue);
+                                }
+                            }
+                        }
+
+                    } catch (Exception exception) {
+                        exception.printStackTrace();
+                    }
+                });
+    }
+
+    private Collection<AnnotatedElement> getAnnotatedElements(String packageName, ClassLoader classLoader, Class<? extends Annotation> annotation) {
+        return getAnnotatedElements(packageName, classLoader, Set.of(annotation));
+    }
+
+    private Collection<AnnotatedElement> getAnnotatedElements(String packageName, ClassLoader classLoader, Set<Class<? extends Annotation>> annotations) {
+        Set<Class<?>> allClasses = new HashSet<>();
+        try {
+            findClassesByPackage(packageName, classLoader, true, allClasses);
+        } catch (Exception exception) {
+            return Collections.emptyList();
+        }
+        Set<AnnotatedElement> foundElements = new HashSet<>();
+
+        for (Class<? extends Annotation> annotation : annotations) {
+            for (Class<?> clazz : allClasses) {
+                if (clazz.isAnnotationPresent(annotation)) {
+                    foundElements.add(clazz);
+                }
+                for (Field field : clazz.getDeclaredFields()) {
+                    if (field.isAnnotationPresent(annotation)) {
+                        foundElements.add(field);
+                    }
+                }
+                for (Method method : clazz.getDeclaredMethods()) {
+                    if (method.isAnnotationPresent(annotation)) {
+                        foundElements.add(method);
+                    }
+                }
+                for (Constructor<?> constructor : clazz.getDeclaredConstructors()) {
+                    if (constructor.isAnnotationPresent(annotation)) {
+                        foundElements.add(constructor);
+                    }
+                }
+            }
+        }
+        return foundElements;
     }
 }

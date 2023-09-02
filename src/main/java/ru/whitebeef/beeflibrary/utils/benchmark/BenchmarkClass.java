@@ -24,7 +24,7 @@ public class BenchmarkClass {
     }
 
     public void printTime(String nameFunction, long timeStart, long timeEnd) {
-        if (!BeefLibrary.getInstance().isDebug()) {
+        if (BeefLibrary.getInstance().isDebug()) {
             return;
         }
         long remainingTime = timeEnd - timeStart;
