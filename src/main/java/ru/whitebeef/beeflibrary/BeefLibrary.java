@@ -10,7 +10,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import ru.whitebeef.beeflibrary.annotations.AnnotationPreprocess;
+import ru.whitebeef.beeflibrary.annotations.AnnotationPreprocessor;
 import ru.whitebeef.beeflibrary.annotations.BooleanProperty;
 import ru.whitebeef.beeflibrary.chat.MessageType;
 import ru.whitebeef.beeflibrary.commands.AbstractCommand;
@@ -81,7 +81,7 @@ public final class BeefLibrary extends JavaPlugin {
         tryHookPlaceholderAPI();
 
         registerListeners(this, new OldInventoryGUIHandler(), new InventoryGUIHandler(),
-                new PluginHandler(), new PlayerJoinQuitHandler(), new BossBarUtils(), new AnnotationPreprocess());
+                new PluginHandler(), new PlayerJoinQuitHandler(), new BossBarUtils(), new AnnotationPreprocessor());
         PAPIUtils.unregisterAllPlaceholders();
 
         MessageType.registerTypesSection(this, "messages");

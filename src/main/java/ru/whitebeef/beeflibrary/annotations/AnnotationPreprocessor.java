@@ -31,11 +31,11 @@ import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-public class AnnotationPreprocess implements Listener {
+public class AnnotationPreprocessor implements Listener {
 
-    private static AnnotationPreprocess instance;
+    private static AnnotationPreprocessor instance;
 
-    public AnnotationPreprocess() {
+    public AnnotationPreprocessor() {
         instance = this;
         Arrays.stream(Bukkit.getPluginManager().getPlugins()).forEach(plugin -> scanPlugin(plugin, LoadType.PRE_ENABLE));
     }
@@ -45,7 +45,7 @@ public class AnnotationPreprocess implements Listener {
         scanPlugin(event.getPlugin(), LoadType.AFTER_ENABLE);
     }
 
-    public static AnnotationPreprocess getInstance() {
+    public static AnnotationPreprocessor getInstance() {
         return instance;
     }
 
