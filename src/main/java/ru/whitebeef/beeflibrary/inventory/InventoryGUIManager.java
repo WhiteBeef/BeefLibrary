@@ -99,7 +99,7 @@ public class InventoryGUIManager {
         }
     }
 
-    public void loadInventory(Plugin plugin, ConfigurationSection section) throws Exception {
+    public void loadInventory(Plugin plugin, ConfigurationSection section)  {
         IInventoryGUI.Builder builder = IInventoryGUI.builder(section.getName(), section.getInt("size"));
 
         builder.setName(section.getString("name"));

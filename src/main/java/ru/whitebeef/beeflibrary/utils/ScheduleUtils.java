@@ -1,7 +1,9 @@
 package ru.whitebeef.beeflibrary.utils;
 
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitTask;
 import ru.whitebeef.beeflibrary.BeefLibrary;
 
 import java.util.concurrent.TimeUnit;
@@ -34,7 +36,7 @@ public class ScheduleUtils {
 
     public static void runTaskLaterAsynchronously(Plugin plugin, Runnable runnable, long delay) {
         if (BeefLibrary.getInstance().isFolia()) {
-            Bukkit.getAsyncScheduler().runDelayed(BeefLibrary.getInstance(), (scheduledTask) -> runnable.run(), delay * 50, TimeUnit.MILLISECONDS);
+            Bukkit.getAsyncScheduler().runDelayed(plugin, (scheduledTask) -> runnable.run(), delay * 50, TimeUnit.MILLISECONDS);
         } else {
             Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, runnable, delay);
         }
@@ -42,7 +44,7 @@ public class ScheduleUtils {
 
     public static void scheduleSyncRepeatingTask(Plugin plugin, Runnable runnable, long delay, long period) {
         if (BeefLibrary.getInstance().isFolia()) {
-            Bukkit.getGlobalRegionScheduler().runAtFixedRate(BeefLibrary.getInstance(), (scheduledTask) -> runnable.run(), delay, period);
+            Bukkit.getGlobalRegionScheduler().runAtFixedRate(plugin, (scheduledTask) -> runnable.run(), delay, period);
         } else {
             Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, runnable, delay, period);
         }
@@ -50,9 +52,19 @@ public class ScheduleUtils {
 
     public static void scheduleAsyncRepeatingTask(Plugin plugin, Runnable runnable, long delay, long period) {
         if (BeefLibrary.getInstance().isFolia()) {
-            Bukkit.getAsyncScheduler().runAtFixedRate(BeefLibrary.getInstance(), (scheduledTask) -> runnable.run(), delay * 50, period * 50, TimeUnit.MILLISECONDS);
+            Bukkit.getAsyncScheduler().runAtFixedRate(plugin, (scheduledTask) -> runnable.run(), delay * 50, period * 50, TimeUnit.MILLISECONDS);
         } else {
-            Bukkit.getScheduler().scheduleAsyncRepeatingTask(plugin, runnable, delay, period);
+            Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, runnable, delay, period);
+        }
+    }
+
+    public static void scheduleAsyncRepeatingTaskTimes(Plugin plugin, Runnable runnable, long delay, long period, int times) {
+        if (BeefLibrary.getInstance().isFolia()) {
+            ScheduledTask scheduledTask = Bukkit.getAsyncScheduler().runAtFixedRate(plugin, (task) -> runnable.run(), delay * 50, period * 50, TimeUnit.MILLISECONDS);
+            runTaskLaterAsynchronously(plugin, scheduledTask::cancel, delay + times * period);
+        } else {
+            BukkitTask bukkitTask = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, runnable, delay, period);
+            runTaskLaterAsynchronously(plugin, bukkitTask::cancel, delay + times * period);
         }
     }
 
