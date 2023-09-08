@@ -1,5 +1,6 @@
 package ru.whitebeef.beeflibrary.utils;
 
+import de.tr7zw.nbtapi.NBTItem;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.apache.commons.lang3.RandomUtils;
 import org.bukkit.Material;
@@ -12,7 +13,10 @@ import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import ru.leonidm.fastnbt.api.FastNBTItem;
+import ru.whitebeef.beeflibrary.BeefLibrary;
 import ru.whitebeef.beeflibrary.chat.MessageFormatter;
+import ru.whitebeef.beeflibrary.placeholderapi.PAPIUtils;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -22,7 +26,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-//TODO: add nbt, flags and attributes
+//TODO: add flags and attributes
 public class ItemGenerateProperties {
 
     public static Builder builder() {
@@ -70,6 +74,16 @@ public class ItemGenerateProperties {
             builder.setEnchantments(enchantments);
         }
 
+
+        if (section.isConfigurationSection("nbt")) {
+            HashMap<String, Object> nbt = new HashMap<>();
+            ConfigurationSection nbtSection = section.getConfigurationSection("nbt");
+            for (String path : nbtSection.getKeys(false)) {
+                nbt.put(path, nbtSection.get(path));
+            }
+            builder.setNbt(nbt);
+        }
+
         return builder.build();
     }
 
@@ -80,8 +94,9 @@ public class ItemGenerateProperties {
     private final Function<Player, String> customModelData;
     private final Function<Player, Map<Enchantment, Integer>> enchantments;
     private final Function<Player, String> damage;
+    private final Function<Player, Map<String, Object>> nbt;
 
-    public ItemGenerateProperties(Function<Player, Material> material, Function<Player, String> name, Function<Player, List<String>> lore, Function<Player, String> count, Function<Player, String> customModelData, Function<Player, Map<Enchantment, Integer>> enchantments, Function<Player, String> damage) {
+    public ItemGenerateProperties(Function<Player, Material> material, Function<Player, String> name, Function<Player, List<String>> lore, Function<Player, String> count, Function<Player, String> customModelData, Function<Player, Map<Enchantment, Integer>> enchantments, Function<Player, String> damage, Function<Player, Map<String, Object>> nbt) {
         this.material = Objects.requireNonNullElse(material, (p) -> Material.STONE);
         this.name = Objects.requireNonNullElse(name, (p) -> "");
         this.lore = Objects.requireNonNullElse(lore, (p) -> Collections.emptyList());
@@ -89,6 +104,7 @@ public class ItemGenerateProperties {
         this.customModelData = Objects.requireNonNullElse(customModelData, (p) -> "0");
         this.enchantments = Objects.requireNonNullElse(enchantments, (p) -> new HashMap<>());
         this.damage = Objects.requireNonNullElse(damage, (p) -> "0");
+        this.nbt = Objects.requireNonNullElse(nbt, ((p) -> new HashMap<>()));
     }
 
     @NotNull
@@ -133,6 +149,45 @@ public class ItemGenerateProperties {
             itemStack.setItemMeta(meta);
         }
 
+        Map<String, Object> nbt = this.nbt.apply(player);
+        if (nbt != null && !nbt.isEmpty()) {
+            for (var entry : nbt.entrySet()) {
+                String path = entry.getKey();
+                if (BeefLibrary.getInstance().isFastNBT()) {
+                    FastNBTItem item = FastNBTItem.read(itemStack);
+                    switch (entry.getValue()) {
+                        case String str -> {
+                            Integer integer = getInt(str);
+                            if (integer != null) {
+                                item.setInt(path, integer);
+                            }
+                            item.setString(path, PAPIUtils.setPlaceholders(player, str));
+                        }
+                        case Integer value -> item.setInt(path, value);
+                        case Boolean value -> item.setBoolean(path, value);
+                        case Double value -> item.setDouble(path, value);
+                        case Byte value -> item.setByte(path, value);
+                        case null, default -> item.setString(path, GsonUtils.parseObject(entry.getValue()));
+                    }
+                } else if (BeefLibrary.getInstance().isNBTAPI()) {
+                    NBTItem item = new NBTItem(itemStack);
+                    switch (entry.getValue()) {
+                        case String str -> {
+                            Integer integer = getInt(str);
+                            if (integer != null) {
+                                item.setInteger(path, integer);
+                            }
+                            item.setString(path, PAPIUtils.setPlaceholders(player, str));
+                        }
+                        case Integer value -> item.setInteger(path, value);
+                        case Boolean value -> item.setBoolean(path, value);
+                        case Double value -> item.setDouble(path, value);
+                        case Byte value -> item.setByte(path, value);
+                        case null, default -> item.setString(path, GsonUtils.parseObject(entry.getValue()));
+                    }
+                }
+            }
+        }
         ItemUtils.getItem(player, itemStack);
 
         return itemStack;
@@ -160,6 +215,7 @@ public class ItemGenerateProperties {
         private Function<@Nullable Player, String> customModelData;
         private Function<@Nullable Player, Map<Enchantment, Integer>> enchantments;
         private Function<@Nullable Player, String> damage;
+        private Function<@Nullable Player, Map<String, Object>> nbt;
 
         public Builder setName(Function<@Nullable Player, String> name) {
             this.name = name;
@@ -226,6 +282,7 @@ public class ItemGenerateProperties {
             return this;
         }
 
+
         public Builder setEnchantments(Map<Enchantment, Integer> enchantments) {
             this.enchantments = p -> enchantments;
             return this;
@@ -241,8 +298,18 @@ public class ItemGenerateProperties {
             return this;
         }
 
+        public Builder setNbt(Function<@Nullable Player, Map<String, Object>> nbt) {
+            this.nbt = nbt;
+            return this;
+        }
+
+        public Builder setNbt(Map<String, Object> nbt) {
+            this.nbt = (p) -> nbt;
+            return this;
+        }
+
         public ItemGenerateProperties build() {
-            return new ItemGenerateProperties(material, name, lore, count, customModelData, enchantments, damage);
+            return new ItemGenerateProperties(material, name, lore, count, customModelData, enchantments, damage, nbt);
         }
     }
 }

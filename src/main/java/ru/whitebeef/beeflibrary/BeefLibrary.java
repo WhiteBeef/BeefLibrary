@@ -59,6 +59,8 @@ public final class BeefLibrary extends JavaPlugin {
     private final Map<String, Set<PlaceholderExpansion>> registeredExpansions = new HashMap<>();
     private boolean placeholderAPIHooked = false;
     private boolean isFolia = false;
+    private boolean isNBTAPI = false;
+    private boolean isFastNBT = false;
     @BooleanProperty(value = "debug")
     private boolean debug;
 
@@ -71,6 +73,8 @@ public final class BeefLibrary extends JavaPlugin {
     public void onEnable() {
 
         tryLoadWithFolia();
+        tryHookFastNBT();
+        tryHookNBTAPI();
 
         loadConfig(this);
 
@@ -117,6 +121,12 @@ public final class BeefLibrary extends JavaPlugin {
 
     }
 
+    private void tryHookFastNBT() {
+        if (Bukkit.getPluginManager().isPluginEnabled("FastNBT")) {
+            isNBTAPI = true;
+        }
+    }
+
     /**
      * Tries to load class from Folia.
      * If it succeeds {@link BeefLibrary#isFolia}, field will be set to true.
@@ -130,6 +140,11 @@ public final class BeefLibrary extends JavaPlugin {
         }
     }
 
+    private void tryHookNBTAPI() {
+        if (Bukkit.getPluginManager().isPluginEnabled("NBTAPI")) {
+            isNBTAPI = true;
+        }
+    }
 
     private void registerCommands() {
         AbstractCommand.builder("inventorygui", SimpleCommand.class)
@@ -290,5 +305,13 @@ public final class BeefLibrary extends JavaPlugin {
         }
 
         serverUuid = uuid;
+    }
+
+    public boolean isNBTAPI() {
+        return isNBTAPI;
+    }
+
+    public boolean isFastNBT() {
+        return isFastNBT;
     }
 }

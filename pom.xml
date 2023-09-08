@@ -109,6 +109,16 @@
             <id>PlugMan</id>
             <url>https://raw.githubusercontent.com/TheBlackEntity/PlugMan/repository/</url>
         </repository>
+        <repository>
+            <id>codemc-repo</id>
+            <url>https://repo.codemc.io/repository/maven-public/</url>
+            <layout>default</layout>
+        </repository>
+        <repository>
+            <id>smashup-repository</id>
+            <name>SmashUp Repository</name>
+            <url>https://mvn.smashup.ru/releases</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -162,6 +172,17 @@
                     <groupId>*</groupId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>de.tr7zw</groupId>
+            <artifactId>item-nbt-api-plugin</artifactId>
+            <version>2.11.3</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>ru.leonidm</groupId>
+            <artifactId>FastNBT</artifactId>
+            <version>0.3.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
     <dependencyManagement>
