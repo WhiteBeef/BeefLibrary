@@ -123,7 +123,7 @@ public final class BeefLibrary extends JavaPlugin {
 
     private void tryHookFastNBT() {
         if (Bukkit.getPluginManager().isPluginEnabled("FastNBT")) {
-            isNBTAPI = true;
+            isFastNBT = true;
         }
     }
 

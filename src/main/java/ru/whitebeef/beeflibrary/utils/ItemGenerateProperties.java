@@ -2,7 +2,6 @@ package ru.whitebeef.beeflibrary.utils;
 
 import de.tr7zw.nbtapi.NBTItem;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.apache.commons.lang3.RandomUtils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
@@ -27,7 +26,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 //TODO: add flags and attributes
-public class ItemGenerateProperties {
+public class ItemGenerateProperties implements Cloneable {
 
     public static Builder builder() {
         return new Builder();
@@ -49,8 +48,13 @@ public class ItemGenerateProperties {
             builder.setCount(section.getString("count"));
         }
 
+        if (section.isInt("customModelData")) {
+            builder.setCustomModelData(String.valueOf(section.getInt("customModelData")));
+        }
+
         if (section.isString("customModelData")) {
             builder.setCustomModelData(section.getString("customModelData"));
+
         }
 
         if (section.isString("damage")) {
@@ -68,16 +72,15 @@ public class ItemGenerateProperties {
                 ConfigurationSection enchantmentSection = section.getConfigurationSection("enchantments." + enchantmentString);
 
                 Enchantment enchantment = Enchantment.getByKey(NamespacedKey.fromString(enchantmentString));
-                enchantments.put(enchantment, getInt(enchantmentSection.getString("level")));
+                enchantments.put(enchantment, MathUtils.getInt(enchantmentSection.getString("level")));
             }
 
             builder.setEnchantments(enchantments);
         }
 
-
         if (section.isConfigurationSection("nbt")) {
-            HashMap<String, Object> nbt = new HashMap<>();
             ConfigurationSection nbtSection = section.getConfigurationSection("nbt");
+            HashMap<String, Object> nbt = new HashMap<>();
             for (String path : nbtSection.getKeys(false)) {
                 nbt.put(path, nbtSection.get(path));
             }
@@ -87,14 +90,14 @@ public class ItemGenerateProperties {
         return builder.build();
     }
 
-    private final Function<Player, Material> material;
-    private final Function<Player, String> name;
-    private final Function<Player, List<String>> lore;
-    private final Function<Player, String> count;
-    private final Function<Player, String> customModelData;
-    private final Function<Player, Map<Enchantment, Integer>> enchantments;
-    private final Function<Player, String> damage;
-    private final Function<Player, Map<String, Object>> nbt;
+    private Function<Player, Material> material;
+    private Function<Player, String> name;
+    private Function<Player, List<String>> lore;
+    private Function<Player, String> count;
+    private Function<Player, String> customModelData;
+    private Function<Player, Map<Enchantment, Integer>> enchantments;
+    private Function<Player, String> damage;
+    private Function<Player, Map<String, Object>> nbt;
 
     public ItemGenerateProperties(Function<Player, Material> material, Function<Player, String> name, Function<Player, List<String>> lore, Function<Player, String> count, Function<Player, String> customModelData, Function<Player, Map<Enchantment, Integer>> enchantments, Function<Player, String> damage, Function<Player, Map<String, Object>> nbt) {
         this.material = Objects.requireNonNullElse(material, (p) -> Material.STONE);
@@ -111,7 +114,7 @@ public class ItemGenerateProperties {
     public ItemStack generate(@Nullable Player player) {
         ItemStack itemStack = new ItemStack(material.apply(player));
 
-        Integer count = getInt(this.count.apply(player));
+        Integer count = MathUtils.getInt(this.count.apply(player));
         if (count != null) {
             itemStack.setAmount(count);
         }
@@ -129,12 +132,12 @@ public class ItemGenerateProperties {
                 meta.lore(lore.stream().map(line -> MessageFormatter.of(line).toComponent(player).decoration(TextDecoration.ITALIC, false)).collect(Collectors.toList()));
             }
 
-            Integer customModelData = getInt(this.customModelData.apply(player));
+            Integer customModelData = MathUtils.getInt(this.customModelData.apply(player));
             if (customModelData != null) {
                 meta.setCustomModelData(customModelData);
             }
 
-            Integer damage = getInt(this.damage.apply(player));
+            Integer damage = MathUtils.getInt(this.damage.apply(player));
             if (damage != null && meta instanceof Damageable damageable) {
                 damageable.setDamage(damage);
             }
@@ -155,35 +158,43 @@ public class ItemGenerateProperties {
                 String path = entry.getKey();
                 if (BeefLibrary.getInstance().isFastNBT()) {
                     FastNBTItem item = FastNBTItem.write(itemStack, true);
-                    switch (entry.getValue()) {
-                        case String str -> {
-                            Integer integer = getInt(str);
-                            if (integer != null) {
-                                item.setInt(path, integer);
-                            }
+                    if (entry.getValue() instanceof String str) {
+                        Integer integer = MathUtils.getInt(str);
+                        if (integer != null) {
+                            item.setInt(path, integer);
+                        } else {
                             item.setString(path, PAPIUtils.setPlaceholders(player, str));
                         }
-                        case Integer value -> item.setInt(path, value);
-                        case Boolean value -> item.setBoolean(path, value);
-                        case Double value -> item.setDouble(path, value);
-                        case Byte value -> item.setByte(path, value);
-                        case null, default -> item.setString(path, GsonUtils.parseObject(entry.getValue()));
+                    } else if (entry.getValue() instanceof Integer value) {
+                        item.setInt(path, value);
+                    } else if (entry.getValue() instanceof Boolean value) {
+                        item.setBoolean(path, value);
+                    } else if (entry.getValue() instanceof Double value) {
+                        item.setDouble(path, value);
+                    } else if (entry.getValue() instanceof Byte value) {
+                        item.setByte(path, value);
+                    } else {
+                        item.setString(path, GsonUtils.parseObject(entry.getValue()));
                     }
                 } else if (BeefLibrary.getInstance().isNBTAPI()) {
                     NBTItem item = new NBTItem(itemStack);
-                    switch (entry.getValue()) {
-                        case String str -> {
-                            Integer integer = getInt(str);
-                            if (integer != null) {
-                                item.setInteger(path, integer);
-                            }
+                    if (entry.getValue() instanceof String str) {
+                        Integer integer = MathUtils.getInt(str);
+                        if (integer != null) {
+                            item.setInteger(path, integer);
+                        } else {
                             item.setString(path, PAPIUtils.setPlaceholders(player, str));
                         }
-                        case Integer value -> item.setInteger(path, value);
-                        case Boolean value -> item.setBoolean(path, value);
-                        case Double value -> item.setDouble(path, value);
-                        case Byte value -> item.setByte(path, value);
-                        case null, default -> item.setString(path, GsonUtils.parseObject(entry.getValue()));
+                    } else if (entry.getValue() instanceof Integer value) {
+                        item.setInteger(path, value);
+                    } else if (entry.getValue() instanceof Boolean value) {
+                        item.setBoolean(path, value);
+                    } else if (entry.getValue() instanceof Double value) {
+                        item.setDouble(path, value);
+                    } else if (entry.getValue() instanceof Byte value) {
+                        item.setByte(path, value);
+                    } else {
+                        item.setString(path, GsonUtils.parseObject(entry.getValue()));
                     }
                 }
             }
@@ -193,18 +204,115 @@ public class ItemGenerateProperties {
         return itemStack;
     }
 
-    private static Integer getInt(String line) {
+    public ItemGenerateProperties setName(Function<@Nullable Player, String> name) {
+        this.name = name;
+        return this;
+    }
+
+    public ItemGenerateProperties setName(String name) {
+        this.name = p -> name;
+        return this;
+    }
+
+    public ItemGenerateProperties setMaterial(Function<@Nullable Player, Material> material) {
+        this.material = material;
+        return this;
+    }
+
+    public ItemGenerateProperties setMaterial(Material material) {
+        this.material = p -> material;
+        return this;
+    }
+
+    public ItemGenerateProperties setCount(Function<@Nullable Player, String> count) {
+        this.count = count;
+        return this;
+    }
+
+    public ItemGenerateProperties setCount(String count) {
+        this.count = p -> count;
+        return this;
+    }
+
+    public ItemGenerateProperties setCustomModelData(Function<@Nullable Player, String> customModelData) {
+        this.customModelData = customModelData;
+        return this;
+    }
+
+    public ItemGenerateProperties setCustomModelData(String customModelData) {
+        this.customModelData = p -> customModelData;
+        return this;
+    }
+
+    public ItemGenerateProperties setLore(Function<@Nullable Player, List<String>> lore) {
+        this.lore = lore;
+        return this;
+    }
+
+    public ItemGenerateProperties setLore(List<String> lore) {
+        this.lore = p -> lore;
+        return this;
+    }
+
+    public ItemGenerateProperties setDescription(List<String> description) {
+        this.lore = p -> description;
+        return this;
+    }
+
+    public ItemGenerateProperties setDescription(Function<@Nullable Player, List<String>> description) {
+        this.lore = description;
+        return this;
+    }
+
+    public ItemGenerateProperties setEnchantments(Function<@Nullable Player, Map<Enchantment, Integer>> enchantments) {
+        this.enchantments = enchantments;
+        return this;
+    }
+
+
+    public ItemGenerateProperties setEnchantments(Map<Enchantment, Integer> enchantments) {
+        this.enchantments = p -> enchantments;
+        return this;
+    }
+
+    public ItemGenerateProperties setDamage(Function<@Nullable Player, String> damage) {
+        this.damage = damage;
+        return this;
+    }
+
+    public ItemGenerateProperties setDamage(String damage) {
+        this.damage = p -> damage;
+        return this;
+    }
+
+    public ItemGenerateProperties setNbt(Function<@Nullable Player, Map<String, Object>> nbt) {
+        this.nbt = nbt;
+        return this;
+    }
+
+    public ItemGenerateProperties setNbt(Map<String, Object> nbt) {
+        this.nbt = (p) -> nbt;
+        return this;
+    }
+
+    @Override
+    public ItemGenerateProperties clone() {
         try {
-            return Integer.parseInt(line);
-        } catch (NumberFormatException e) {
-            try {
-                String[] arr = line.split("\\.\\.");
-                return RandomUtils.nextInt(Integer.parseInt(arr[0]), Integer.parseInt(arr[1]) + 1);
-            } catch (NumberFormatException ignored) {
-                return null;
-            }
+            ItemGenerateProperties clone = (ItemGenerateProperties) super.clone();
+            clone.setMaterial(material);
+            clone.setName(name);
+            clone.setLore(lore);
+            clone.setCount(count);
+            clone.setCustomModelData(customModelData);
+            clone.setEnchantments(enchantments);
+            clone.setDamage(damage);
+            clone.setNbt(nbt);
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
         }
     }
+
 
     public static class Builder {
 
