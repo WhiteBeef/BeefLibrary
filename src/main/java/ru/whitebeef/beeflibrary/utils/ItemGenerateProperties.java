@@ -154,7 +154,7 @@ public class ItemGenerateProperties {
             for (var entry : nbt.entrySet()) {
                 String path = entry.getKey();
                 if (BeefLibrary.getInstance().isFastNBT()) {
-                    FastNBTItem item = FastNBTItem.read(itemStack);
+                    FastNBTItem item = FastNBTItem.write(itemStack, true);
                     switch (entry.getValue()) {
                         case String str -> {
                             Integer integer = getInt(str);
