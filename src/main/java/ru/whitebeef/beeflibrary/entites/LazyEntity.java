@@ -3,7 +3,7 @@ package ru.whitebeef.beeflibrary.entites;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.whitebeef.beeflibrary.BeefLibrary;
@@ -29,7 +29,7 @@ public abstract class LazyEntity {
     private static final Map<String, Map<UUID, Map<Class<? extends LazyEntity>, LazyEntity>>> loadedEntities = new HashMap<>();
     private static final Map<String, Set<LazyEntity>> toSave = new HashMap<>();
 
-    private static BukkitRunnable lazyBukkitSaveTask = null;
+    private static BukkitTask lazyBukkitSaveTask = null;
     private static ScheduledTask lazyScheduledSaveTask = null;
 
     public static void registerLazyEntityType(@NotNull Plugin plugin, @NotNull Class<? extends LazyEntity> lazyEntityClass,
@@ -57,16 +57,9 @@ public abstract class LazyEntity {
         if (BeefLibrary.getInstance().isFolia()) {
             lazyScheduledSaveTask = Bukkit.getAsyncScheduler().runAtFixedRate(BeefLibrary.getInstance(),
                     (scheduledTask) -> LazyEntity.saveAll(),
-                    25, 25, TimeUnit.SECONDS);
+                    60, 60, TimeUnit.SECONDS);
         } else {
-            lazyBukkitSaveTask = new BukkitRunnable() {
-                @Override
-                public void run() {
-                    LazyEntity.saveAll();
-                }
-            };
-
-            lazyBukkitSaveTask.runTaskTimerAsynchronously(BeefLibrary.getInstance(), 500L, 500L);
+            lazyBukkitSaveTask = Bukkit.getScheduler().runTaskTimerAsynchronously(BeefLibrary.getInstance(), LazyEntity::saveAll, 1200L, 1200L);
         }
     }
 
