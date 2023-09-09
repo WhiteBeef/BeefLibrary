@@ -83,14 +83,14 @@ public abstract class LazyEntity {
         }
     }
 
-    private static void addCache(@NotNull Plugin plugin, @NotNull LazyEntity lazyEntity) {
+    private static void addCache(@NotNull LazyEntity lazyEntity) {
         if (!JedisUtils.isJedisEnabled()) {
             loadedEntities.computeIfAbsent(lazyEntity.getPluginName(), k -> new HashMap<>())
                     .computeIfAbsent(lazyEntity.getEntityUuid(), k -> new HashMap<>())
                     .put(lazyEntity.getClass(), lazyEntity);
             return;
         }
-        JedisUtils.jedisSet(plugin, lazyEntity.getClass().getSimpleName() + ":" +
+        JedisUtils.getJedis().set(lazyEntity.getPluginName() + ":" + lazyEntity.getClass().getSimpleName() + ":" +
                 lazyEntity.getEntityUuid().toString(), GsonUtils.parseObject(lazyEntity.getData()));
     }
 
@@ -166,7 +166,7 @@ public abstract class LazyEntity {
         }
         lazyEntity = ((LazyEntityDatabase) Database.getDatabase(plugin, databaseName)).getLazyEntity(plugin, entityUuid);
         if (lazyEntity != null) {
-            addCache(plugin, lazyEntity);
+            addCache(lazyEntity);
             return lazyEntity;
         }
 
@@ -177,8 +177,8 @@ public abstract class LazyEntity {
             throw new RuntimeException(e);
         }
 
-        addCache(plugin, lazyEntity);
-        lazyEntity.lazySave(plugin);
+        addCache(lazyEntity);
+        lazyEntity.lazySave();
         return lazyEntity;
     }
 
@@ -213,8 +213,8 @@ public abstract class LazyEntity {
         return data;
     }
 
-    public void lazySave(Plugin plugin) {
-        addCache(plugin, this);
+    public void lazySave() {
+        addCache(this);
         toSave.computeIfAbsent(pluginName, k -> new HashSet<>()).add(this);
     }
 
