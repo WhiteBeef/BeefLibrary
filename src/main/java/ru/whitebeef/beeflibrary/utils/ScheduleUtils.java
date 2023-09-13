@@ -1,7 +1,9 @@
 package ru.whitebeef.beeflibrary.utils;
 
+import io.papermc.paper.threadedregions.scheduler.EntityScheduler;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
 import ru.whitebeef.beeflibrary.BeefLibrary;
@@ -61,7 +63,7 @@ public class ScheduleUtils {
     public static void scheduleAsyncRepeatingTaskTimes(Plugin plugin, Runnable runnable, long period, int times) {
         if (BeefLibrary.getInstance().isFolia()) {
             ScheduledTask scheduledTask = Bukkit.getAsyncScheduler().runAtFixedRate(plugin, (task) -> runnable.run(), 0, period * 50, TimeUnit.MILLISECONDS);
-            runTaskLaterAsynchronously(plugin, scheduledTask::cancel,  times * period);
+            runTaskLaterAsynchronously(plugin, scheduledTask::cancel, times * period);
         } else {
             BukkitTask bukkitTask = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, runnable, 0, period);
             runTaskLaterAsynchronously(plugin, bukkitTask::cancel, times * period);

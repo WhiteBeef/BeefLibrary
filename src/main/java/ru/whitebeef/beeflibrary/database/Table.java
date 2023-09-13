@@ -48,4 +48,9 @@ public class Table {
         return this;
     }
 
+    public Table addColumn(@NotNull String name, String type) {
+        columns.add(new Column(name, type));
+        return this;
+    }
+
 }

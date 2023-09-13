@@ -78,8 +78,10 @@ public abstract class LazyEntity {
     }
 
     public static void saveAll() {
-        for (var toSave : toSave.values()) {
-            toSave.removeIf(LazyEntity::save);
+        for (var entry : toSave.entrySet()) {
+            Set<LazyEntity> unsaved = new HashSet<>(entry.getValue());
+            unsaved.removeIf(LazyEntity::save);
+            toSave.put(entry.getKey(), unsaved);
         }
     }
 

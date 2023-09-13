@@ -1,6 +1,6 @@
 package ru.whitebeef.beeflibrary;
 
-import com.rylinaux.plugman.PlugMan;
+import com.rylinaux.plugman.api.PlugManAPI;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -9,7 +9,6 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
 import ru.whitebeef.beeflibrary.annotations.AnnotationPreprocessor;
 import ru.whitebeef.beeflibrary.annotations.BooleanProperty;
 import ru.whitebeef.beeflibrary.chat.MessageType;
@@ -18,7 +17,7 @@ import ru.whitebeef.beeflibrary.commands.SimpleCommand;
 import ru.whitebeef.beeflibrary.commands.impl.inventorygui.OpenSubCommand;
 import ru.whitebeef.beeflibrary.entites.LazyEntity;
 import ru.whitebeef.beeflibrary.handlers.PlayerJoinQuitHandler;
-import ru.whitebeef.beeflibrary.handlers.PluginHandler;
+import ru.whitebeef.beeflibrary.handlers.PluginEnableHandler;
 import ru.whitebeef.beeflibrary.inventory.CustomInventoryGUICommand;
 import ru.whitebeef.beeflibrary.inventory.IInventoryGUI;
 import ru.whitebeef.beeflibrary.inventory.InventoryGUIHandler;
@@ -27,12 +26,13 @@ import ru.whitebeef.beeflibrary.inventory.deprecated.OldInventoryGUIHandler;
 import ru.whitebeef.beeflibrary.inventory.deprecated.OldInventoryGUIManager;
 import ru.whitebeef.beeflibrary.inventory.impl.UpdatableInventoryGUI;
 import ru.whitebeef.beeflibrary.placeholderapi.PAPIUtils;
+import ru.whitebeef.beeflibrary.plugin.BeefPlugin;
 import ru.whitebeef.beeflibrary.utils.BossBarUtils;
 import ru.whitebeef.beeflibrary.utils.ItemUtils;
 import ru.whitebeef.beeflibrary.utils.JedisUtils;
+import ru.whitebeef.beeflibrary.utils.LoggerUtils;
 import ru.whitebeef.beeflibrary.utils.PlayerInetUtils;
 import ru.whitebeef.beeflibrary.utils.PlayerNameUtils;
-import ru.whitebeef.beeflibrary.utils.ScheduleUtils;
 import ru.whitebeef.beeflibrary.utils.SoundType;
 
 import java.util.ArrayList;
@@ -43,7 +43,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 
-public final class BeefLibrary extends JavaPlugin {
+public final class BeefLibrary extends BeefPlugin {
 
     private static BeefLibrary instance;
     private static UUID serverUuid;
@@ -61,7 +61,7 @@ public final class BeefLibrary extends JavaPlugin {
     private boolean isFolia = false;
     private boolean isNBTAPI = false;
     private boolean isFastNBT = false;
-    @BooleanProperty(value = "debug")
+    @BooleanProperty("debug")
     private boolean debug;
 
     @Override
@@ -76,22 +76,21 @@ public final class BeefLibrary extends JavaPlugin {
         tryHookFastNBT();
         tryHookNBTAPI();
 
-        loadConfig(this);
+        registerListeners(this, new OldInventoryGUIHandler(), new InventoryGUIHandler(), new PluginEnableHandler(),
+                new PlayerJoinQuitHandler(), new BossBarUtils(), new AnnotationPreprocessor());
 
-        System.setProperty("org.slf4j.simpleLogger.log.org.reflections", "off");
+        new OldInventoryGUIManager();
+        new InventoryGUIManager();
+
+        loadConfig(this);
 
         generateServerUuid();
 
         tryHookPlaceholderAPI();
 
-        registerListeners(this, new OldInventoryGUIHandler(), new InventoryGUIHandler(),
-                new PluginHandler(), new PlayerJoinQuitHandler(), new BossBarUtils(), new AnnotationPreprocessor());
-        PAPIUtils.unregisterAllPlaceholders();
 
         MessageType.registerTypesSection(this, "messages");
 
-        new OldInventoryGUIManager();
-        new InventoryGUIManager();
         registerCustomGUICommands();
         registerCommands();
 
@@ -99,31 +98,17 @@ public final class BeefLibrary extends JavaPlugin {
         new PlayerInetUtils();
         PlayerNameUtils.init();
 
-        ScheduleUtils.runTaskLater(this, () -> {
-            if (Bukkit.getPluginManager().isPluginEnabled("PlugManX")) {
-                for (Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
-                    if (!plugin.getDescription().getDepend().contains("BeefLibrary") &&
-                            !plugin.getDescription().getSoftDepend().contains("BeefLibrary")) {
-                        continue;
-                    }
-                    if (!plugin.isEnabled()) {
-                        try {
-                            PlugMan.getInstance().getPluginUtil().reload(plugin);
-                        } catch (Exception exception) {
-                            getLogger().severe("Error while loading plugin " + plugin.getName() + ". Skipped!");
-                        }
-                    }
-                }
-            }
-        }, 30L);
+        if (Bukkit.getPluginManager().isPluginEnabled("PlugmanX")) {
+            PlugManAPI.iDoNotWantToBeUnOrReloaded("BeefLibrary");
+        }
 
         LazyEntity.startLazySaveTask();
-
     }
 
     private void tryHookFastNBT() {
         if (Bukkit.getPluginManager().isPluginEnabled("FastNBT")) {
             isFastNBT = true;
+            LoggerUtils.debug(BeefLibrary.getInstance(), "Loaded with FastNBT");
         }
     }
 
@@ -143,6 +128,7 @@ public final class BeefLibrary extends JavaPlugin {
     private void tryHookNBTAPI() {
         if (Bukkit.getPluginManager().isPluginEnabled("NBTAPI")) {
             isNBTAPI = true;
+            LoggerUtils.debug(BeefLibrary.getInstance(), "Loaded with NBTApi");
         }
     }
 
@@ -170,6 +156,7 @@ public final class BeefLibrary extends JavaPlugin {
         AbstractCommand.unregisterAllCommands(this);
         PAPIUtils.unregisterAllPlaceholders();
         unregisterPlaceholders();
+
         if (JedisUtils.isJedisEnabled()) {
             JedisUtils.unSubscribeAll();
         }

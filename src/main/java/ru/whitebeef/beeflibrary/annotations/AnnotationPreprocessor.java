@@ -8,6 +8,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.plugin.Plugin;
 import ru.whitebeef.beeflibrary.BeefLibrary;
+import ru.whitebeef.beeflibrary.plugin.BeefPlugin;
 import ru.whitebeef.beeflibrary.utils.LoggerUtils;
 
 import java.io.File;
@@ -185,13 +186,13 @@ public class AnnotationPreprocessor implements Listener {
     }
 
     public void scanPlugin(Plugin plugin, LoadType currentLoadType) {
-        if (!plugin.getDescription().getDepend().contains("BeefLibrary") &&
-                !plugin.getDescription().getSoftDepend().contains("BeefLibrary") &&
-                !plugin.getName().equals("BeefLibrary")) {
+        if (!(plugin instanceof BeefPlugin)) {
             return;
         }
         LoggerUtils.debug(BeefLibrary.getInstance(), "Starting annotating plugin " + plugin.getName());
-        BeefLibrary.loadConfig(plugin);
+        if (plugin.getResource("config.yml") == null) {
+            return;
+        }
         FileConfiguration config = plugin.getConfig();
         getAnnotatedElements(plugin.getClass().getPackageName(), plugin.getClass().getClassLoader(), Set.of(ConfigProperty.class, IntProperty.class, BooleanProperty.class, StringProperty.class)).stream().map(annotatedElement -> (Field) annotatedElement)
                 .forEach(field -> {
@@ -261,6 +262,7 @@ public class AnnotationPreprocessor implements Listener {
                         exception.printStackTrace();
                     }
                 });
+        LoggerUtils.debug(BeefLibrary.getInstance(), "[AnnotationPreprocessor.scanPlugin()#267] End scan.");
     }
 
     private Collection<AnnotatedElement> getAnnotatedElements(String packageName, ClassLoader classLoader, Class<? extends Annotation> annotation) {

@@ -2,7 +2,6 @@ package ru.whitebeef.beeflibrary.utils;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.apache.commons.lang3.RandomUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -55,12 +54,12 @@ public class ItemUtils {
         if (section.isInt("count")) {
             itemStack.setAmount(section.getInt("count"));
         }
-        try {
-            if (section.isString("count")) {
-                String[] arr = section.getString("count").split("\\.\\.");
-                itemStack.setAmount(RandomUtils.nextInt(Integer.parseInt(arr[0]), Integer.parseInt(arr[1])));
+
+        if (section.isString("count")) {
+            Integer count = MathUtils.getInt(section.getString("count"));
+            if (count != null) {
+                itemStack.setAmount(count);
             }
-        } catch (NumberFormatException ignored) {
         }
 
         ItemMeta meta = itemStack.getItemMeta();

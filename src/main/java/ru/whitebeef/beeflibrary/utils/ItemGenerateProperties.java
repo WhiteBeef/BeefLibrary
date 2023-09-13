@@ -19,9 +19,11 @@ import ru.whitebeef.beeflibrary.placeholderapi.PAPIUtils;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -84,7 +86,7 @@ public class ItemGenerateProperties implements Cloneable {
             for (String path : nbtSection.getKeys(false)) {
                 nbt.put(path, nbtSection.get(path));
             }
-            builder.setNbt(nbt);
+            builder.setNbt(Set.of(p -> nbt));
         }
 
         return builder.build();
@@ -97,9 +99,9 @@ public class ItemGenerateProperties implements Cloneable {
     private Function<Player, String> customModelData;
     private Function<Player, Map<Enchantment, Integer>> enchantments;
     private Function<Player, String> damage;
-    private Function<Player, Map<String, Object>> nbt;
+    private Set<Function<Player, Map<String, Object>>> nbt;
 
-    public ItemGenerateProperties(Function<Player, Material> material, Function<Player, String> name, Function<Player, List<String>> lore, Function<Player, String> count, Function<Player, String> customModelData, Function<Player, Map<Enchantment, Integer>> enchantments, Function<Player, String> damage, Function<Player, Map<String, Object>> nbt) {
+    public ItemGenerateProperties(Function<Player, Material> material, Function<Player, String> name, Function<Player, List<String>> lore, Function<Player, String> count, Function<Player, String> customModelData, Function<Player, Map<Enchantment, Integer>> enchantments, Function<Player, String> damage, Set<Function<Player, Map<String, Object>>> nbt) {
         this.material = Objects.requireNonNullElse(material, (p) -> Material.STONE);
         this.name = Objects.requireNonNullElse(name, (p) -> "");
         this.lore = Objects.requireNonNullElse(lore, (p) -> Collections.emptyList());
@@ -107,7 +109,7 @@ public class ItemGenerateProperties implements Cloneable {
         this.customModelData = Objects.requireNonNullElse(customModelData, (p) -> "0");
         this.enchantments = Objects.requireNonNullElse(enchantments, (p) -> new HashMap<>());
         this.damage = Objects.requireNonNullElse(damage, (p) -> "0");
-        this.nbt = Objects.requireNonNullElse(nbt, ((p) -> new HashMap<>()));
+        this.nbt = Objects.requireNonNullElse(nbt, new HashSet<>());
     }
 
     @NotNull
@@ -151,50 +153,51 @@ public class ItemGenerateProperties implements Cloneable {
 
             itemStack.setItemMeta(meta);
         }
-
-        Map<String, Object> nbt = this.nbt.apply(player);
-        if (nbt != null && !nbt.isEmpty()) {
-            for (var entry : nbt.entrySet()) {
-                String path = entry.getKey();
-                if (BeefLibrary.getInstance().isFastNBT()) {
-                    FastNBTItem item = FastNBTItem.write(itemStack, true);
-                    if (entry.getValue() instanceof String str) {
-                        Integer integer = MathUtils.getInt(str);
-                        if (integer != null) {
-                            item.setInt(path, integer);
+        for (var function : this.nbt) {
+            Map<String, Object> nbt = function.apply(player);
+            if (nbt != null && !nbt.isEmpty()) {
+                for (var entry : nbt.entrySet()) {
+                    String path = entry.getKey();
+                    if (BeefLibrary.getInstance().isFastNBT()) {
+                        FastNBTItem item = FastNBTItem.write(itemStack, true);
+                        if (entry.getValue() instanceof String str) {
+                            Integer integer = MathUtils.getInt(str);
+                            if (integer != null) {
+                                item.setInt(path, integer);
+                            } else {
+                                item.setString(path, PAPIUtils.setPlaceholders(player, str));
+                            }
+                        } else if (entry.getValue() instanceof Integer value) {
+                            item.setInt(path, value);
+                        } else if (entry.getValue() instanceof Boolean value) {
+                            item.setBoolean(path, value);
+                        } else if (entry.getValue() instanceof Double value) {
+                            item.setDouble(path, value);
+                        } else if (entry.getValue() instanceof Byte value) {
+                            item.setByte(path, value);
                         } else {
-                            item.setString(path, PAPIUtils.setPlaceholders(player, str));
+                            item.setString(path, GsonUtils.parseObject(entry.getValue()));
                         }
-                    } else if (entry.getValue() instanceof Integer value) {
-                        item.setInt(path, value);
-                    } else if (entry.getValue() instanceof Boolean value) {
-                        item.setBoolean(path, value);
-                    } else if (entry.getValue() instanceof Double value) {
-                        item.setDouble(path, value);
-                    } else if (entry.getValue() instanceof Byte value) {
-                        item.setByte(path, value);
-                    } else {
-                        item.setString(path, GsonUtils.parseObject(entry.getValue()));
-                    }
-                } else if (BeefLibrary.getInstance().isNBTAPI()) {
-                    NBTItem item = new NBTItem(itemStack);
-                    if (entry.getValue() instanceof String str) {
-                        Integer integer = MathUtils.getInt(str);
-                        if (integer != null) {
-                            item.setInteger(path, integer);
+                    } else if (BeefLibrary.getInstance().isNBTAPI()) {
+                        NBTItem item = new NBTItem(itemStack);
+                        if (entry.getValue() instanceof String str) {
+                            Integer integer = MathUtils.getInt(str);
+                            if (integer != null) {
+                                item.setInteger(path, integer);
+                            } else {
+                                item.setString(path, PAPIUtils.setPlaceholders(player, str));
+                            }
+                        } else if (entry.getValue() instanceof Integer value) {
+                            item.setInteger(path, value);
+                        } else if (entry.getValue() instanceof Boolean value) {
+                            item.setBoolean(path, value);
+                        } else if (entry.getValue() instanceof Double value) {
+                            item.setDouble(path, value);
+                        } else if (entry.getValue() instanceof Byte value) {
+                            item.setByte(path, value);
                         } else {
-                            item.setString(path, PAPIUtils.setPlaceholders(player, str));
+                            item.setString(path, GsonUtils.parseObject(entry.getValue()));
                         }
-                    } else if (entry.getValue() instanceof Integer value) {
-                        item.setInteger(path, value);
-                    } else if (entry.getValue() instanceof Boolean value) {
-                        item.setBoolean(path, value);
-                    } else if (entry.getValue() instanceof Double value) {
-                        item.setDouble(path, value);
-                    } else if (entry.getValue() instanceof Byte value) {
-                        item.setByte(path, value);
-                    } else {
-                        item.setString(path, GsonUtils.parseObject(entry.getValue()));
                     }
                 }
             }
@@ -285,15 +288,26 @@ public class ItemGenerateProperties implements Cloneable {
         return this;
     }
 
-    public ItemGenerateProperties setNbt(Function<@Nullable Player, Map<String, Object>> nbt) {
+    public ItemGenerateProperties setNbt(Set<Function<@Nullable Player, Map<String, Object>>> nbt) {
         this.nbt = nbt;
         return this;
     }
 
-    public ItemGenerateProperties setNbt(Map<String, Object> nbt) {
-        this.nbt = (p) -> nbt;
+    public ItemGenerateProperties addNbt(Function<@Nullable Player, Map<String, Object>> nbt) {
+        this.nbt.add(nbt);
         return this;
     }
+
+    public ItemGenerateProperties addNbt(Map<String, Object> nbt) {
+        this.nbt.add((p) -> nbt);
+        return this;
+    }
+
+    public ItemGenerateProperties addNbt(String path, Object obj) {
+        this.nbt.add(p -> Map.of(path, obj));
+        return this;
+    }
+
 
     @Override
     public ItemGenerateProperties clone() {
@@ -323,7 +337,7 @@ public class ItemGenerateProperties implements Cloneable {
         private Function<@Nullable Player, String> customModelData;
         private Function<@Nullable Player, Map<Enchantment, Integer>> enchantments;
         private Function<@Nullable Player, String> damage;
-        private Function<@Nullable Player, Map<String, Object>> nbt;
+        private Set<Function<@Nullable Player, Map<String, Object>>> nbt;
 
         public Builder setName(Function<@Nullable Player, String> name) {
             this.name = name;
@@ -406,15 +420,26 @@ public class ItemGenerateProperties implements Cloneable {
             return this;
         }
 
-        public Builder setNbt(Function<@Nullable Player, Map<String, Object>> nbt) {
+        public Builder addNbt(Function<@Nullable Player, Map<String, Object>> nbt) {
+            this.nbt.add(nbt);
+            return this;
+        }
+
+        public Builder addNbt(Map<String, Object> nbt) {
+            this.nbt.add((p) -> nbt);
+            return this;
+        }
+
+        public Builder addNbt(String path, Object obj) {
+            this.nbt.add(p -> Map.of(path, obj));
+            return this;
+        }
+
+        public Builder setNbt(Set<Function<@Nullable Player, Map<String, Object>>> nbt) {
             this.nbt = nbt;
             return this;
         }
 
-        public Builder setNbt(Map<String, Object> nbt) {
-            this.nbt = (p) -> nbt;
-            return this;
-        }
 
         public ItemGenerateProperties build() {
             return new ItemGenerateProperties(material, name, lore, count, customModelData, enchantments, damage, nbt);
