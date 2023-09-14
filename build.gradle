@@ -51,7 +51,6 @@ repositories {
 
 dependencies {
     implementation 'io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT'
-    testImplementation 'io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT'
     implementation 'me.clip:placeholderapi:2.11.1'
     implementation 'redis.clients:jedis:4.3.0'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
@@ -101,18 +100,21 @@ shadowJar {
         include dependency("redis.clients:jedis:4.3.0")
         include dependency("org.json:json:20090211")
         include dependency("org.apache.commons:commons-pool2:2.11.1")
+        include dependency("io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT")
     }
     relocate("redis.clients.jedis", "ru.whitebeef.beeflibrary.redis")
+    relocate("redis.clients.jedis", "ru.whitebeef.beeflibrary.redis")
     relocate("org.json", "ru.whitebeef.beeflibrary.json")
-    relocate("org.apache.commons", "ru.whitebeef.beeflibrary/apache")
+    relocate("org.apache.commons", "ru.whitebeef.beeflibrary.apache")
+    relocate("io.papermc.paper", "ru.whitebeef.beeflibrary.paper")
     destinationDirectory.set(destinationDir)
     archiveFileName.set(project.name + ".jar")
 
     doLast {
         copy {
-            from 'C:\\plugins\\BeefPlugins\\BeefLibrary\\BeefLibrary.jar'
-            into 'C:\\plugins\\BeefPlugins\\BeefLibrary'
-            rename { 'BeefLibrary-' + project.version + '.jar' }
+            from destinationDir.toPath()
+            into destinationDir.toPath()
+            rename { project.name + '-' + project.version + '.jar' }
         }
     }
 }
