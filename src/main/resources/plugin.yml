@@ -1,5 +1,5 @@
 name: BeefLibrary
-version: '${project.version}'
+version: $version
 main: ru.whitebeef.beeflibrary.BeefLibrary
 api-version: 1.19
 authors: [ _WhiteBeef_ ]

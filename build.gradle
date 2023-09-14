@@ -5,10 +5,14 @@ plugins {
 
 group = 'ru.whitebeef'
 version = '2.0.0'
+
 compileJava.options.encoding = 'UTF-8'
+
 def destinationDir = file("C:\\plugins\\BeefPlugins\\$project.name")
 def jarName = project.name + '.jar';
 def versionJarName = project.name + '-' + project.version + '.jar';
+
+
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
@@ -88,10 +92,11 @@ tasks.withType(JavaCompile).configureEach {
 
 
 processResources {
-    include "**/*.yml"
-
-    filesNotMatching("**/plugin.yml") { fcd ->
-        fcd.expand(baseDir: projectDir)
+    def props = [version: version]
+    inputs.properties props
+    filteringCharset 'UTF-8'
+    filesMatching('plugin.yml') {
+        expand props
     }
 }
 tasks.build.dependsOn tasks.shadowJar
@@ -106,7 +111,6 @@ shadowJar {
         include dependency("org.apache.commons:commons-pool2:2.11.1")
     }
     relocate("redis.clients.jedis", "ru.whitebeef.beeflibrary.redis")
-    relocate("redis.clients.jedis", "ru.whitebeef.beeflibrary.redis")
     relocate("org.json", "ru.whitebeef.beeflibrary.json")
     relocate("org.apache.commons", "ru.whitebeef.beeflibrary.apache")
     destinationDirectory.set(destinationDir)
@@ -120,4 +124,5 @@ shadowJar {
         }
     }
 }
+
 apply plugin: 'java'
