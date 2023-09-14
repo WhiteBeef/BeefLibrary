@@ -1,0 +1,119 @@
+plugins {
+    id "com.github.johnrengelman.shadow" version "8.1.1"
+    id 'java'
+}
+
+group = 'ru.whitebeef'
+version = '2.0.0'
+compileJava.options.encoding = 'UTF-8'
+def destinationDir = file("C:\\plugins\\BeefPlugins\\$project.name")
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'papermc-repo'
+        url = 'https://repo.papermc.io/repository/maven-public/'
+    }
+    maven {
+        name = 'sonatype'
+        url = 'https://oss.sonatype.org/content/groups/public/'
+    }
+    maven {
+        name = 'placeholderapi'
+        url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/'
+    }
+    maven {
+        name = 'PlugMan'
+        url = 'https://raw.githubusercontent.com/TheBlackEntity/PlugMan/repository/'
+    }
+    maven {
+        name = 'codemc-repo'
+        url = 'https://repo.codemc.io/repository/maven-public/'
+    }
+    maven {
+        name = 'smashup-repository'
+        url = 'https://mvn.smashup.ru/releases'
+    }
+    maven {
+        name = 'femboymc-repository'
+        url = 'https://mvn.femboymc.lgbt/releases'
+    }
+    maven {
+        url "https://plugins.gradle.org/m2/"
+    }
+
+}
+
+dependencies {
+    implementation 'io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT'
+    testImplementation 'io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT'
+    implementation 'me.clip:placeholderapi:2.11.1'
+    implementation 'redis.clients:jedis:4.3.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
+    implementation 'io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT'
+    implementation 'dev.folia:folia-api:1.19.4-R0.1-SNAPSHOT'
+    implementation 'com.rylinaux:PlugMan:2.3.3'
+    implementation 'de.tr7zw:item-nbt-api-plugin:2.11.3'
+    implementation 'ru.leonidm:FastNBT:0.3.1-SNAPSHOT'
+    implementation 'org.apache.commons:commons-pool2:2.11.1'
+}
+
+
+tasks.build.dependsOn tasks.shadowJar
+
+def targetJavaVersion = 17
+java {
+    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
+    if (JavaVersion.current() < javaVersion) {
+        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+    }
+}
+
+javadoc {
+    options.encoding = 'UTF-8'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
+        options.release = targetJavaVersion
+    }
+}
+
+
+processResources {
+    include "**/*.yml"
+
+    filesNotMatching("**/plugin.yml") { fcd ->
+        fcd.expand(baseDir: projectDir)
+    }
+}
+tasks.build.dependsOn tasks.shadowJar
+
+shadowJar {
+    dependencies {
+        include dependency("redis.clients:jedis:4.3.0")
+        include dependency("org.json:json:20090211")
+        include dependency("org.apache.commons:commons-pool2:2.11.1")
+    }
+    relocate("redis.clients.jedis", "ru.whitebeef.beeflibrary.redis")
+    relocate("org.json", "ru.whitebeef.beeflibrary.json")
+    relocate("org.apache.commons", "ru.whitebeef.beeflibrary/apache")
+    destinationDirectory.set(destinationDir)
+    archiveFileName.set(project.name + ".jar")
+
+    doLast {
+        copy {
+            from 'C:\\plugins\\BeefPlugins\\BeefLibrary\\BeefLibrary.jar'
+            into 'C:\\plugins\\BeefPlugins\\BeefLibrary'
+            rename { 'BeefLibrary-' + project.version + '.jar' }
+        }
+    }
+}
+apply plugin: 'java'
