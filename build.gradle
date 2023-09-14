@@ -7,7 +7,8 @@ group = 'ru.whitebeef'
 version = '2.0.0'
 compileJava.options.encoding = 'UTF-8'
 def destinationDir = file("C:\\plugins\\BeefPlugins\\$project.name")
-
+def jarName = project.name + '.jar';
+def versionJarName = project.name + '-' + project.version + '.jar';
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
@@ -96,25 +97,26 @@ processResources {
 tasks.build.dependsOn tasks.shadowJar
 
 shadowJar {
+    delete destinationDir.toPath().toString() + '\\' + jarName
+    delete destinationDir.toPath().toString() + '\\' + versionJarName
+
     dependencies {
         include dependency("redis.clients:jedis:4.3.0")
         include dependency("org.json:json:20090211")
         include dependency("org.apache.commons:commons-pool2:2.11.1")
-        include dependency("io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT")
     }
     relocate("redis.clients.jedis", "ru.whitebeef.beeflibrary.redis")
     relocate("redis.clients.jedis", "ru.whitebeef.beeflibrary.redis")
     relocate("org.json", "ru.whitebeef.beeflibrary.json")
     relocate("org.apache.commons", "ru.whitebeef.beeflibrary.apache")
-    relocate("io.papermc.paper", "ru.whitebeef.beeflibrary.paper")
     destinationDirectory.set(destinationDir)
-    archiveFileName.set(project.name + ".jar")
+    archiveFileName.set(jarName)
 
     doLast {
         copy {
             from destinationDir.toPath()
             into destinationDir.toPath()
-            rename { project.name + '-' + project.version + '.jar' }
+            rename { versionJarName }
         }
     }
 }
