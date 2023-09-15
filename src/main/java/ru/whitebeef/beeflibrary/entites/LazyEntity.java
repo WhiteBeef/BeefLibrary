@@ -89,7 +89,7 @@ public abstract class LazyEntity {
         if (!JedisUtils.isJedisEnabled()) {
             loadedEntities.computeIfAbsent(lazyEntity.getPluginName(), k -> new HashMap<>())
                     .computeIfAbsent(lazyEntity.getEntityUuid(), k -> new HashMap<>())
-                    .putIfAbsent(lazyEntity.getClass(), lazyEntity);
+                    .put(lazyEntity.getClass(), lazyEntity);
             return;
         }
         JedisUtils.getJedis().set(lazyEntity.getPluginName() + ":" + lazyEntity.getClass().getSimpleName() + ":" +

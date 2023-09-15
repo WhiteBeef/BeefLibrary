@@ -46,6 +46,9 @@ public abstract class BeefPlugin extends JavaPlugin {
     }
 
     public void reload() {
+        if (getResource("config.yml") != null) {
+            saveDefaultConfig();
+        }
         reloadConfig();
         disable();
 
