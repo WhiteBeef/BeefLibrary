@@ -10,6 +10,4 @@ import java.lang.annotation.Target;
 public @interface ConfigProperty {
 
     String value();
-
-    LoadType loadType() default LoadType.PRE_ENABLE;
 }

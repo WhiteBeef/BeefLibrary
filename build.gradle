@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'ru.whitebeef'
-version = '2.0.0'
+version = '2.1.0'
 
 compileJava.options.encoding = 'UTF-8'
 
@@ -107,12 +107,12 @@ shadowJar {
 
     dependencies {
         include dependency("redis.clients:jedis:4.3.0")
-        include dependency("org.json:json:20090211")
+        include dependency("org.json:json")
         include dependency("org.apache.commons:commons-pool2:2.11.1")
     }
-    relocate("redis.clients.jedis", "ru.whitebeef.beeflibrary.redis")
-    relocate("org.json", "ru.whitebeef.beeflibrary.json")
-    relocate("org.apache.commons", "ru.whitebeef.beeflibrary.apache")
+    relocate("redis.clients.jedis", "ru.whitebeef.libs.redis")
+    relocate("org.json", "ru.whitebeef.libs.json")
+    relocate("org.apache.commons", "ru.whitebeef.libs.apache")
     destinationDirectory.set(destinationDir)
     archiveFileName.set(jarName)
 

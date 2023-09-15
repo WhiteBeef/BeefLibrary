@@ -1,9 +1,10 @@
 package ru.whitebeef.beeflibrary.plugin;
 
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.whitebeef.beeflibrary.BeefLibrary;
 import ru.whitebeef.beeflibrary.annotations.AnnotationPreprocessor;
-import ru.whitebeef.beeflibrary.annotations.LoadType;
+import ru.whitebeef.beeflibrary.chat.MessageSender;
 import ru.whitebeef.beeflibrary.chat.MessageType;
 import ru.whitebeef.beeflibrary.commands.AbstractCommand;
 import ru.whitebeef.beeflibrary.commands.SimpleCommand;
@@ -22,31 +23,46 @@ public abstract class BeefPlugin extends JavaPlugin {
         reload();
     }
 
+    @Override
+    public void onDisable() {
+        super.onDisable();
+        disable();
+    }
 
-    public void reload() {
-
-        AbstractCommand.builder(getName(), SimpleCommand.class)
-                .addSubCommand(AbstractCommand.builder("reload", SimpleCommand.class)
-                        .setOnCommand((sender, strings) -> reloadConfig())
-                        .build())
-                .setPermission(getName() + ".command")
-                .build().register(this);
-
-        AnnotationPreprocessor.getInstance().scanPlugin(this, LoadType.PRE_ENABLE);
+    private void disable() {
         BeefLibrary.getInstance().unregisterPlaceholders(this);
         InventoryGUIManager.getInstance().unregisterTemplates(this);
         SoundType.unregisterTypesSection(this);
         AbstractCommand.unregisterAllCommands(this);
         PAPIUtils.unregisterPlaceholders(this);
         MessageType.unregisterTypesSection(this);
+        HandlerList.unregisterAll(this);
         if (JedisUtils.isJedisEnabled()) {
             JedisUtils.unSubscribe(this);
         }
         for (Database database : Database.getDatabases(this)) {
             database.close();
         }
+    }
+
+    public void reload() {
+        reloadConfig();
+        disable();
 
         MessageType.registerTypesSection(this, "messages");
         SoundType.registerTypesSection(this, "sounds");
+        AnnotationPreprocessor.getInstance().scanPlugin(this);
+
+        AbstractCommand.builder(getName(), SimpleCommand.class)
+                .addSubCommand(AbstractCommand.builder("reload", SimpleCommand.class)
+                        .setOnCommand((sender, strings) -> {
+                            reload();
+                            MessageSender.sendMessageType(sender, BeefLibrary.getInstance(), "success");
+                        })
+                        .build())
+                .setPermission(getName() + ".command")
+                .build().register(this);
+
     }
+
 }

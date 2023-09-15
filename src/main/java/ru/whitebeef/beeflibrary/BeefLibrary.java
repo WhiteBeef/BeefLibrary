@@ -11,13 +11,13 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import ru.whitebeef.beeflibrary.annotations.AnnotationPreprocessor;
 import ru.whitebeef.beeflibrary.annotations.BooleanProperty;
+import ru.whitebeef.beeflibrary.chat.MessageSender;
 import ru.whitebeef.beeflibrary.chat.MessageType;
 import ru.whitebeef.beeflibrary.commands.AbstractCommand;
 import ru.whitebeef.beeflibrary.commands.SimpleCommand;
 import ru.whitebeef.beeflibrary.commands.impl.inventorygui.OpenSubCommand;
 import ru.whitebeef.beeflibrary.entites.LazyEntity;
 import ru.whitebeef.beeflibrary.handlers.PlayerJoinQuitHandler;
-import ru.whitebeef.beeflibrary.handlers.PluginEnableHandler;
 import ru.whitebeef.beeflibrary.inventory.CustomInventoryGUICommand;
 import ru.whitebeef.beeflibrary.inventory.IInventoryGUI;
 import ru.whitebeef.beeflibrary.inventory.InventoryGUIHandler;
@@ -76,7 +76,7 @@ public final class BeefLibrary extends BeefPlugin {
         tryHookFastNBT();
         tryHookNBTAPI();
 
-        registerListeners(this, new OldInventoryGUIHandler(), new InventoryGUIHandler(), new PluginEnableHandler(),
+        registerListeners(this, new OldInventoryGUIHandler(), new InventoryGUIHandler(),
                 new PlayerJoinQuitHandler(), new BossBarUtils(), new AnnotationPreprocessor());
 
         new OldInventoryGUIManager();
@@ -87,7 +87,6 @@ public final class BeefLibrary extends BeefPlugin {
         generateServerUuid();
 
         tryHookPlaceholderAPI();
-
 
         MessageType.registerTypesSection(this, "messages");
 
@@ -140,16 +139,26 @@ public final class BeefLibrary extends BeefPlugin {
                         .setMinArgsCount(2)
                         .build())
                 .build().register(this);
+        AbstractCommand command = AbstractCommand.getCommand(this, "beeflibrary")
+                .orElse(AbstractCommand.builder("beeflibrary", SimpleCommand.class)
+                        .setPermission("beeflibrary.commands.inventorygui")
+                        .build());
+        command.addSubCommand(AbstractCommand.builder("redisreconect", SimpleCommand.class)
+                .setOnCommand((sender, strings) -> {
+                    new JedisUtils();
+                    MessageSender.sendMessageType(sender, this, "success");
+                })
+                .build());
+
+        command.register(this);
     }
 
     @Override
     public void onDisable() {
         for (Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
-            if (!plugin.getDescription().getDepend().contains("BeefLibrary") &&
-                    !plugin.getDescription().getSoftDepend().contains("BeefLibrary")) {
-                continue;
+            if (plugin instanceof BeefPlugin) {
+                Bukkit.getPluginManager().disablePlugin(plugin);
             }
-            Bukkit.getPluginManager().disablePlugin(plugin);
         }
 
         InventoryGUIManager.getInstance().closeAllInventories();

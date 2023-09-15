@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -39,6 +40,12 @@ public abstract class AbstractCommand extends BukkitCommand {
 
     public static Builder builder(String name, Class<? extends AbstractCommand> clazz) {
         return new Builder(name, clazz);
+    }
+
+
+    public static Optional<AbstractCommand> getCommand(Plugin plugin, String command) {
+        String finalCommand = command.toLowerCase();
+        return registeredCommands.get(plugin).stream().filter(abstractCommand -> abstractCommand.getName().equals(finalCommand)).findAny();
     }
 
     private final Map<UUID, Cooldown> cooldowns = new HashMap<>();
