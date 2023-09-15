@@ -121,6 +121,7 @@ shadowJar {
             from destinationDir.toPath()
             into destinationDir.toPath()
             rename { versionJarName }
+            duplicatesStrategy(DuplicatesStrategy.INCLUDE)
         }
     }
 }
