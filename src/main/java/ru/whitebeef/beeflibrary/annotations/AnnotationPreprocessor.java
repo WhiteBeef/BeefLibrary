@@ -52,30 +52,13 @@ public class AnnotationPreprocessor implements Listener {
             return;
         }
         FileConfiguration config = plugin.getConfig();
-        getAnnotatedElements(plugin.getClass().getPackageName(), plugin.getClass().getClassLoader(), Set.of(ConfigProperty.class, IntProperty.class, BooleanProperty.class, StringProperty.class)).stream().map(annotatedElement -> (Field) annotatedElement)
+        getAnnotatedElements(plugin.getClass().getPackageName(), plugin.getClass().getClassLoader(), Set.of(ConfigProperty.class)).stream().map(annotatedElement -> (Field) annotatedElement)
                 .forEach(field -> {
                     try {
                         field.setAccessible(true);
                         String path = null;
                         if (field.isAnnotationPresent(ConfigProperty.class)) {
                             path = field.getAnnotation(ConfigProperty.class).value();
-                        }
-                        Object defaultValue = null;
-                        if (field.isAnnotationPresent(IntProperty.class)) {
-                            path = field.getAnnotation(IntProperty.class).value();
-                            defaultValue = field.getAnnotation(IntProperty.class);
-                        }
-                        if (field.isAnnotationPresent(BooleanProperty.class)) {
-                            path = field.getAnnotation(BooleanProperty.class).value();
-                            defaultValue = field.getAnnotation(BooleanProperty.class).defaultValue();
-                        }
-                        if (field.isAnnotationPresent(StringProperty.class)) {
-                            path = field.getAnnotation(StringProperty.class).value();
-                            defaultValue = field.getAnnotation(StringProperty.class).defaultValue();
-                        }
-                        if (field.isAnnotationPresent(StringArrayProperty.class)) {
-                            path = field.getAnnotation(StringArrayProperty.class).value();
-                            defaultValue = field.getAnnotation(StringArrayProperty.class).defaultValue();
                         }
                         Object configValue = null;
                         if (path != null && config.isSet(path)) {
@@ -84,10 +67,6 @@ public class AnnotationPreprocessor implements Listener {
                         if (Modifier.isStatic(field.getModifiers())) {
                             if (configValue != null) {
                                 field.set(null, configValue);
-                            } else {
-                                if (field.get(null) == null) {
-                                    field.set(null, defaultValue);
-                                }
                             }
                         } else {
                             Class<?> clazz = field.getDeclaringClass();
@@ -99,10 +78,6 @@ public class AnnotationPreprocessor implements Listener {
                             }
                             if (configValue != null) {
                                 field.set(obj, configValue);
-                            } else {
-                                if (field.get(obj) == null) {
-                                    field.set(obj, defaultValue);
-                                }
                             }
 
                         }

@@ -10,7 +10,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import ru.whitebeef.beeflibrary.annotations.AnnotationPreprocessor;
-import ru.whitebeef.beeflibrary.annotations.BooleanProperty;
+import ru.whitebeef.beeflibrary.annotations.ConfigProperty;
 import ru.whitebeef.beeflibrary.chat.MessageSender;
 import ru.whitebeef.beeflibrary.chat.MessageType;
 import ru.whitebeef.beeflibrary.commands.AbstractCommand;
@@ -61,7 +61,7 @@ public final class BeefLibrary extends BeefPlugin {
     private boolean isFolia = false;
     private boolean isNBTAPI = false;
     private boolean isFastNBT = false;
-    @BooleanProperty("debug")
+    @ConfigProperty("debug")
     private boolean debug;
 
     @Override
