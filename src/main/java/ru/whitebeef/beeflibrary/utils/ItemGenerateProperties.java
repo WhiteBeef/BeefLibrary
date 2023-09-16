@@ -304,7 +304,9 @@ public class ItemGenerateProperties implements Cloneable {
     }
 
     public ItemGenerateProperties addNbt(String path, Object obj) {
-        this.nbt.add(p -> Map.of(path, obj));
+        this.nbt.add(p -> new HashMap<>() {{
+            put(path, obj);
+        }});
         return this;
     }
 
@@ -431,7 +433,9 @@ public class ItemGenerateProperties implements Cloneable {
         }
 
         public Builder addNbt(String path, Object obj) {
-            this.nbt.add(p -> Map.of(path, obj));
+            this.nbt.add(p -> new HashMap<>() {{
+                put(path, obj);
+            }});
             return this;
         }
 

@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'ru.whitebeef'
-version = '2.1.1'
+version = '2.1.2'
 
 compileJava.options.encoding = 'UTF-8'
 
@@ -55,7 +55,6 @@ repositories {
 }
 
 dependencies {
-    implementation 'io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT'
     implementation 'me.clip:placeholderapi:2.11.1'
     implementation 'redis.clients:jedis:4.3.0'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
@@ -109,10 +108,11 @@ shadowJar {
         include dependency("redis.clients:jedis:4.3.0")
         include dependency("org.json:json")
         include dependency("org.apache.commons:commons-pool2:2.11.1")
+        include dependency("io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT")
     }
     relocate("redis.clients.jedis", "ru.whitebeef.libs.redis")
     relocate("org.json", "ru.whitebeef.libs.json")
-    relocate("org.apache.commons", "ru.whitebeef.libs.apache")
+    relocate("io.papermc.paper", "ru.whitebeef.libs.paper")
     destinationDirectory.set(destinationDir)
     archiveFileName.set(jarName)
 
