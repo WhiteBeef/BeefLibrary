@@ -86,7 +86,9 @@ public class ItemGenerateProperties implements Cloneable {
             for (String path : nbtSection.getKeys(false)) {
                 nbt.put(path, nbtSection.get(path));
             }
-            builder.setNbt(Set.of(p -> nbt));
+            builder.setNbt(new HashSet<>() {{
+                add(p -> nbt);
+            }});
         }
 
         return builder.build();
