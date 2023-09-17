@@ -11,7 +11,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import ru.whitebeef.beeflibrary.utils.StringUtils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -216,7 +215,7 @@ public abstract class AbstractCommand extends BukkitCommand {
                 }
             }
         }
-        return retList.stream().filter(str -> StringUtils.startsWithIgnoreCase(str, args[args.length - 1])).toList();
+        return retList;//.stream().filter(str -> StringUtils.startsWithIgnoreCase(str, args[args.length - 1])).toList();
     }
 
     @Override
