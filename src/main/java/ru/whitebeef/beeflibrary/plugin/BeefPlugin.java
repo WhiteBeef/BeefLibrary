@@ -50,7 +50,7 @@ public abstract class BeefPlugin extends JavaPlugin {
             saveDefaultConfig();
         }
         reloadConfig();
-        disable();
+        onDisable();
 
         MessageType.registerTypesSection(this, "messages");
         SoundType.registerTypesSection(this, "sounds");

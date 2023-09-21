@@ -1,6 +1,7 @@
 package ru.whitebeef.beeflibrary.annotations;
 
 
+import com.rylinaux.plugman.api.PlugManAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.Listener;
@@ -9,7 +10,6 @@ import ru.whitebeef.beeflibrary.BeefLibrary;
 import ru.whitebeef.beeflibrary.plugin.BeefPlugin;
 import ru.whitebeef.beeflibrary.utils.LoggerUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
@@ -55,6 +55,9 @@ public class AnnotationPreprocessor implements Listener {
         getAnnotatedElements(plugin.getClass().getPackageName(), plugin.getClass().getClassLoader(), Set.of(ConfigProperty.class)).stream().map(annotatedElement -> (Field) annotatedElement)
                 .forEach(field -> {
                     try {
+                        if (Bukkit.getPluginManager().isPluginEnabled("PlugmanX")) {
+                            PlugManAPI.iDoNotWantToBeUnOrReloaded(plugin.getName());
+                        }
                         field.setAccessible(true);
                         String path = null;
                         if (field.isAnnotationPresent(ConfigProperty.class)) {
@@ -84,6 +87,7 @@ public class AnnotationPreprocessor implements Listener {
                     } catch (Exception exception) {
                         exception.printStackTrace();
                     }
+
                 });
         LoggerUtils.debug(BeefLibrary.getInstance(), "[AnnotationPreprocessor.scanPlugin()#267] End scan.");
     }
@@ -102,34 +106,7 @@ public class AnnotationPreprocessor implements Listener {
             URL pkgUrl = urls.nextElement();
             String urlString = URLDecoder.decode(pkgUrl.getFile(), StandardCharsets.UTF_8);
             String protocol = pkgUrl.getProtocol().toLowerCase();
-            if ("file".equals(protocol)) {
-                File pkgDir = new File(urlString);
-                if (pkgDir.isDirectory()) {
-                    if (includeSubPackages) {
-                        findClassNamesRecursive(pkgDir, result,
-                                qualifiedNameBuilder,
-                                qualifiedNamePrefixLength);
-                    } else {
-                        for (String fileName : pkgDir.list()) {
-                            String simpleClassName = fixClassName(fileName);
-                            if (simpleClassName != null) {
-                                qualifiedNameBuilder
-                                        .setLength(qualifiedNamePrefixLength);
-                                qualifiedNameBuilder
-                                        .append(simpleClassName);
-                                Class<?> clazz = Class
-                                        .forName(qualifiedNameBuilder
-                                                .toString());
-                                if (!clazz.isInterface()
-                                        && !clazz.isAnnotation()) {
-                                    result.add(clazz);
-                                }
-                            }
-                        }
-                    }
-                }
-            } else if ("jar".equals(protocol)) {
-                // somehow the connection has no close method and can NOT be disposed
+            if ("jar".equals(protocol)) {
                 JarURLConnection connection = (JarURLConnection) pkgUrl
                         .openConnection();
                 JarFile jarFile = connection.getJarFile();
@@ -142,10 +119,7 @@ public class AnnotationPreprocessor implements Listener {
                         if (absoluteFileName.startsWith("/")) {
                             absoluteFileName.substring(1);
                         }
-                        // special treatment for WAR files...
-                        // "WEB-INF/lib/" entries should be opened directly in contained jar
                         if (absoluteFileName.startsWith("WEB-INF/classes/")) {
-                            // "WEB-INF/classes/".length() == 16
                             absoluteFileName = absoluteFileName
                                     .substring(16);
                         }
@@ -183,35 +157,6 @@ public class AnnotationPreprocessor implements Listener {
         }
     }
 
-    private static void findClassNamesRecursive(File pkgDir,
-                                                Set<Class<?>> result, StringBuilder qualifiedNameBuilder,
-                                                int qualifiedNamePrefixLength) throws ClassNotFoundException {
-        for (File childFile : pkgDir.listFiles()) {
-            String fileName = childFile.getName();
-            if (childFile.isDirectory()) {
-                qualifiedNameBuilder.setLength(qualifiedNamePrefixLength);
-                StringBuilder subBuilder = new StringBuilder(
-                        qualifiedNameBuilder);
-                subBuilder.append(fileName);
-                subBuilder.append('.');
-                findClassNamesRecursive(childFile, result, subBuilder,
-                        subBuilder.length());
-            } else {
-                String simpleClassName = fixClassName(fileName);
-                if (simpleClassName != null) {
-                    qualifiedNameBuilder
-                            .setLength(qualifiedNamePrefixLength);
-                    qualifiedNameBuilder.append(simpleClassName);
-                    Class<?> clazz = Class.forName(qualifiedNameBuilder
-                            .toString());
-                    if (!clazz.isInterface() && !clazz.isAnnotation()) {
-                        result.add(clazz);
-                    }
-                }
-            }
-        }
-    }
-
     private static String fixClassName(String fileName) {
         if (fileName.endsWith(".class")) {
             // remove extension (".class".length() == 6)
@@ -221,11 +166,6 @@ public class AnnotationPreprocessor implements Listener {
             return nameWithoutExtension;
         }
         return null;
-    }
-
-
-    private Collection<AnnotatedElement> getAnnotatedElements(String packageName, ClassLoader classLoader, Class<? extends Annotation> annotation) {
-        return getAnnotatedElements(packageName, classLoader, Set.of(annotation));
     }
 
     private Collection<AnnotatedElement> getAnnotatedElements(String packageName, ClassLoader classLoader, Set<Class<? extends Annotation>> annotations) {

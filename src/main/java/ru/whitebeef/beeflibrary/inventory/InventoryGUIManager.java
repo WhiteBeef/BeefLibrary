@@ -99,7 +99,7 @@ public class InventoryGUIManager {
         }
     }
 
-    public void loadInventory(Plugin plugin, ConfigurationSection section)  {
+    public void loadInventory(Plugin plugin, ConfigurationSection section) {
         IInventoryGUI.Builder builder = IInventoryGUI.builder(section.getName(), section.getInt("size"));
 
         builder.setName(section.getString("name"));
@@ -137,7 +137,9 @@ public class InventoryGUIManager {
                             builder.addClickConsumer(slot, (inventoryGUI, player) -> CustomInventoryGUICommand.getInstance().runCommand(inventoryGUI, player, command)));
                 }
             }
-
+            if (slotSection.isBoolean("isOpen") && slotSection.getBoolean("isOpen")) {
+                builder.openSlots(slot);
+            }
         }
 
         List<BiConsumer<IInventoryGUI, Player>> closeConsumers = new ArrayList<>();
