@@ -27,13 +27,7 @@ import ru.whitebeef.beeflibrary.inventory.deprecated.OldInventoryGUIManager;
 import ru.whitebeef.beeflibrary.inventory.impl.UpdatableInventoryGUI;
 import ru.whitebeef.beeflibrary.placeholderapi.PAPIUtils;
 import ru.whitebeef.beeflibrary.plugin.BeefPlugin;
-import ru.whitebeef.beeflibrary.utils.BossBarUtils;
-import ru.whitebeef.beeflibrary.utils.ItemUtils;
-import ru.whitebeef.beeflibrary.utils.JedisUtils;
-import ru.whitebeef.beeflibrary.utils.LoggerUtils;
-import ru.whitebeef.beeflibrary.utils.PlayerInetUtils;
-import ru.whitebeef.beeflibrary.utils.PlayerNameUtils;
-import ru.whitebeef.beeflibrary.utils.SoundType;
+import ru.whitebeef.beeflibrary.utils.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -94,7 +88,7 @@ public final class BeefLibrary extends BeefPlugin {
         registerCommands();
 
         new JedisUtils();
-        new PlayerInetUtils();
+        PlayerAddressUtils.init();
         PlayerNameUtils.init();
 
         if (Bukkit.getPluginManager().isPluginEnabled("PlugmanX")) {
