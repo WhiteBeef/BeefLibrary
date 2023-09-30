@@ -108,7 +108,7 @@ buildNumber.properties
 run/
 
 # User-specific stuff
-!libraries/PlugManX.jar
+!gradle/wrapper/gradle-wrapper.jar
 
 .idea/
 
