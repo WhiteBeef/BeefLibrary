@@ -89,6 +89,8 @@ $RECYCLE.BIN/
 *.lnk
 .gradle/
 target/
+build/
+dest/
 
 pom.xml.tag
 pom.xml.releaseBackup
