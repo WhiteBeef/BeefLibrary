@@ -17,7 +17,7 @@ To build just run shadowJar or build
   <dependency>
     <groupId>ru.whitebeef</groupId>
     <artifactId>BeefLibrary</artifactId>
-    <version>2.1.5</version>
+    <version>VERSION</version>
   </dependency>
 ...
 </dependencies>
