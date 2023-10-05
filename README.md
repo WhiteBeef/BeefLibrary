@@ -1,5 +1,8 @@
 # BeefLibrary
 
+Releases:
+https://mvn.femboymc.lgbt/#/releases/ru/whitebeef/BeefLibrary
+
 To build just run shadowJar or build
 ```
 <repositories>
