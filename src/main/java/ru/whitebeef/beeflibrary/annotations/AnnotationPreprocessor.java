@@ -141,8 +141,8 @@ public class AnnotationPreprocessor implements Listener {
                                         if (!clazz.isInterface() && !clazz.isAnnotation()) {
                                             result.add(clazz);
                                         }
-                                    } catch (Exception e) {
-
+                                    } catch (Throwable e) {
+                                        LoggerUtils.debug(BeefLibrary.getInstance(), e.getMessage());
                                     }
                                 }
                             }
