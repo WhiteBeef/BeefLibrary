@@ -19,8 +19,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.JarURLConnection;
 import java.net.URL;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -104,7 +102,6 @@ public class AnnotationPreprocessor implements Listener {
 
         while (urls.hasMoreElements()) {
             URL pkgUrl = urls.nextElement();
-            String urlString = URLDecoder.decode(pkgUrl.getFile(), StandardCharsets.UTF_8);
             String protocol = pkgUrl.getProtocol().toLowerCase();
             if ("jar".equals(protocol)) {
                 JarURLConnection connection = (JarURLConnection) pkgUrl
@@ -139,11 +136,13 @@ public class AnnotationPreprocessor implements Listener {
                             if (accept) {
                                 String className = fixClassName(qualifiedName);
                                 if (className != null) {
-                                    Class<?> clazz = Class
-                                            .forName(className);
-                                    if (!clazz.isInterface()
-                                            && !clazz.isAnnotation()) {
-                                        result.add(clazz);
+                                    try {
+                                        Class<?> clazz = Class.forName(className);
+                                        if (!clazz.isInterface() && !clazz.isAnnotation()) {
+                                            result.add(clazz);
+                                        }
+                                    } catch (Exception e) {
+
                                     }
                                 }
                             }

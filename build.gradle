@@ -124,10 +124,10 @@ shadowJar {
         include dependency("org.apache.commons:commons-pool2:2.11.1")
         include dependency("io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT") // enable to 1.19.4
     }
-    relocate("redis.clients.jedis", "ru.whitebeef.libs.redis")
-    relocate("org.json", "ru.whitebeef.libs.json")
-    relocate("org.apache.commons", "ru.whitebeef.libs.apache")
-    relocate("io.papermc.paper", "ru.whitebeef.libs.paper") // enable to 1.19.4
+    relocate("redis.clients.jedis", "ru.whitebeef.beeflibrary.libs.redis")
+    relocate("org.json", "ru.whitebeef.beeflibrary.libs.json")
+    relocate("org.apache.commons", "ru.whitebeef.beeflibrary.libs.apache")
+    relocate("io.papermc.paper", "ru.whitebeef.beeflibrary.libs.paper") // enable to 1.19.4
     destinationDirectory.set(destinationDir)
     archiveFileName.set(jarName)
 
