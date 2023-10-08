@@ -1,7 +1,9 @@
 package ru.whitebeef.beeflibrary.plugin;
 
+import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
 import ru.whitebeef.beeflibrary.BeefLibrary;
 import ru.whitebeef.beeflibrary.annotations.AnnotationPreprocessor;
 import ru.whitebeef.beeflibrary.chat.MessageSender;
@@ -30,6 +32,7 @@ public abstract class BeefPlugin extends JavaPlugin {
     }
 
     private void disable() {
+        Bukkit.getScheduler().getPendingTasks().stream().filter(bukkitTask -> bukkitTask.getOwner() == this).forEach(BukkitTask::cancel);
         BeefLibrary.getInstance().unregisterPlaceholders(this);
         InventoryGUIManager.getInstance().unregisterTemplates(this);
         SoundType.unregisterTypesSection(this);

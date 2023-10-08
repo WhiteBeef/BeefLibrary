@@ -7,7 +7,7 @@ plugins {
 }
 
 group = 'ru.whitebeef'
-version = '2.2.1'
+version = '2.2.2'
 
 compileJava.options.encoding = 'UTF-8'
 
@@ -26,7 +26,6 @@ def versionJarName = project.name + '-' + project.version + '.jar';
 def mavenRepoUsername = System.getenv("mvn-repo-username")
 def mavenRepoPassword = System.getenv("mvn-repo-token")
 
-println mavenRepoUsername
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
