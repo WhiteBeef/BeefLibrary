@@ -92,4 +92,35 @@ public class TimeConverter {
     public static List<String> prefix(String prefix, Collection<String> collection) {
         return collection.stream().map(s -> prefix + s).collect(Collectors.toList());
     }
+
+    /**
+     * @param time String in format 1d2h3m4s
+     * @return 0 if time is incorrect
+     */
+    public static long convert(String time) {
+        Duration duration = Duration.ZERO;
+        Matcher matcher = timePattern.matcher(time);
+        while (matcher.find()) {
+            String group = matcher.group();
+            Duration d = timeUnits.get(group.split("")[group.length() - 1]);
+            int multiplier = Integer.parseInt(group.substring(0, group.length() - 1));
+            duration = duration.plus(d.multipliedBy(multiplier));
+        }
+        return duration.equals(Duration.ZERO) ? 0 : duration.toMillis();
+    }
+
+    /**
+     * @return String in format 1d2h3m4s
+     */
+    public static String convertToString(long time, String regex) {
+        StringBuilder sb = new StringBuilder();
+        for (String unit : new String[]{"y", "w", "d", "h", "m", "s"}) {
+            Duration duration = timeUnits.get(unit);
+            int mul = (int) (time / duration.toMillis());
+            time -= mul * duration.toMillis();
+            if (mul != 0)
+                sb.append(mul).append(unit).append(regex);
+        }
+        return sb.toString();
+    }
 }

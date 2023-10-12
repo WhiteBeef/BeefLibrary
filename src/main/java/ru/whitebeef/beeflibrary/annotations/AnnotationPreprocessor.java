@@ -168,36 +168,37 @@ public class AnnotationPreprocessor implements Listener {
     }
 
     private Collection<AnnotatedElement> getAnnotatedElements(String packageName, ClassLoader classLoader, Set<Class<? extends Annotation>> annotations) {
-        Set<Class<?>> allClasses = new HashSet<>();
         try {
+            Set<Class<?>> allClasses = new HashSet<>();
             findClassesByPackage(packageName, classLoader, true, allClasses);
-        } catch (Exception exception) {
-            return Collections.emptyList();
-        }
-        Set<AnnotatedElement> foundElements = new HashSet<>();
 
-        for (Class<? extends Annotation> annotation : annotations) {
-            for (Class<?> clazz : allClasses) {
-                if (clazz.isAnnotationPresent(annotation)) {
-                    foundElements.add(clazz);
-                }
-                for (Field field : clazz.getDeclaredFields()) {
-                    if (field.isAnnotationPresent(annotation)) {
-                        foundElements.add(field);
+            Set<AnnotatedElement> foundElements = new HashSet<>();
+
+            for (Class<? extends Annotation> annotation : annotations) {
+                for (Class<?> clazz : allClasses) {
+                    if (clazz.isAnnotationPresent(annotation)) {
+                        foundElements.add(clazz);
                     }
-                }
-                for (Method method : clazz.getDeclaredMethods()) {
-                    if (method.isAnnotationPresent(annotation)) {
-                        foundElements.add(method);
+                    for (Field field : clazz.getDeclaredFields()) {
+                        if (field.isAnnotationPresent(annotation)) {
+                            foundElements.add(field);
+                        }
                     }
-                }
-                for (Constructor<?> constructor : clazz.getDeclaredConstructors()) {
-                    if (constructor.isAnnotationPresent(annotation)) {
-                        foundElements.add(constructor);
+                    for (Method method : clazz.getDeclaredMethods()) {
+                        if (method.isAnnotationPresent(annotation)) {
+                            foundElements.add(method);
+                        }
+                    }
+                    for (Constructor<?> constructor : clazz.getDeclaredConstructors()) {
+                        if (constructor.isAnnotationPresent(annotation)) {
+                            foundElements.add(constructor);
+                        }
                     }
                 }
             }
+            return foundElements;
+        } catch (Throwable exception) {
+            return Collections.emptyList();
         }
-        return foundElements;
     }
 }
