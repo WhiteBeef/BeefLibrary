@@ -49,26 +49,29 @@ public abstract class BeefPlugin extends JavaPlugin {
     }
 
     public void reload() {
-        if (getResource("config.yml") != null) {
-            saveDefaultConfig();
+        try {
+            if (getResource("config.yml") != null) {
+                saveDefaultConfig();
+            }
+            reloadConfig();
+            onDisable();
+
+            MessageType.registerTypesSection(this, "messages");
+            SoundType.registerTypesSection(this, "sounds");
+            AnnotationPreprocessor.getInstance().scanPlugin(this);
+
+            AbstractCommand.builder(getName(), SimpleCommand.class)
+                    .addSubCommand(AbstractCommand.builder("reload", SimpleCommand.class)
+                            .setOnCommand((sender, strings) -> {
+                                reload();
+                                MessageSender.sendMessageType(sender, BeefLibrary.getInstance(), "success");
+                            })
+                            .build())
+                    .setPermission(getName() + ".command")
+                    .build().register(this);
+        } catch (Exception exception) {
+            exception.printStackTrace();
         }
-        reloadConfig();
-        onDisable();
-
-        MessageType.registerTypesSection(this, "messages");
-        SoundType.registerTypesSection(this, "sounds");
-        AnnotationPreprocessor.getInstance().scanPlugin(this);
-
-        AbstractCommand.builder(getName(), SimpleCommand.class)
-                .addSubCommand(AbstractCommand.builder("reload", SimpleCommand.class)
-                        .setOnCommand((sender, strings) -> {
-                            reload();
-                            MessageSender.sendMessageType(sender, BeefLibrary.getInstance(), "success");
-                        })
-                        .build())
-                .setPermission(getName() + ".command")
-                .build().register(this);
-
     }
 
 }
