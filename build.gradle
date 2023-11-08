@@ -7,7 +7,7 @@ plugins {
 }
 
 group = 'ru.whitebeef'
-version = '2.2.3'
+version = '2.2.4'
 
 compileJava.options.encoding = 'UTF-8'
 

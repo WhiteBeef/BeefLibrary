@@ -3,11 +3,13 @@ package ru.whitebeef.beeflibrary.utils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus.Internal;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.whitebeef.beeflibrary.BeefLibrary;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -84,6 +86,9 @@ public final class PlayerNameUtils {
         @Nullable
         UUID getUniqueId(String name);
 
+        @NotNull
+        Set<String> getPlayerNames();
+
         void addPlayer(Player player);
 
         void removePlayer(Player player);
@@ -105,6 +110,11 @@ public final class PlayerNameUtils {
         }
 
         @Override
+        public @NotNull Set<String> getPlayerNames() {
+            return uuids.keySet();
+        }
+
+        @Override
         public void addPlayer(Player player) {
             uuids.put(player.getName(), player.getUniqueId());
             names.put(player.getUniqueId(), player.getName());
@@ -118,17 +128,21 @@ public final class PlayerNameUtils {
     }
 
     private static final class JedisImplementation implements Implementation {
-        private static final String KEY_PREFIX = "player:";
 
         @Override
         public @Nullable String getName(UUID uniqueId) {
-            return JedisUtils.jedisGet(BeefLibrary.getInstance(), KEY_PREFIX.concat(uniqueId.toString()));
+            return JedisUtils.jedisGet(BeefLibrary.getInstance(), uniqueId.toString());
         }
 
         @Override
         public @Nullable UUID getUniqueId(String name) {
-            String uuid = JedisUtils.jedisGet(BeefLibrary.getInstance(), KEY_PREFIX.concat(name));
+            String uuid = JedisUtils.jedisGet(BeefLibrary.getInstance(), name);
             return uuid == null ? null : UUID.fromString(uuid);
+        }
+
+        @Override
+        public @NotNull Set<String> getPlayerNames() {
+            return JedisUtils.jedisGetSet(BeefLibrary.getInstance(), "playerNames");
         }
 
         @Override
@@ -136,14 +150,16 @@ public final class PlayerNameUtils {
             String uniqueId = player.getUniqueId().toString();
             String name = player.getName();
 
-            JedisUtils.jedisSet(BeefLibrary.getInstance(), KEY_PREFIX.concat(uniqueId), name);
-            JedisUtils.jedisSet(BeefLibrary.getInstance(), KEY_PREFIX.concat(name), uniqueId);
+            JedisUtils.jedisSet(BeefLibrary.getInstance(), uniqueId, name);
+            JedisUtils.jedisSet(BeefLibrary.getInstance(), name, uniqueId);
+            JedisUtils.jedisAddInSet(BeefLibrary.getInstance(), "playerNames", name);
         }
 
         @Override
         public void removePlayer(Player player) {
-            JedisUtils.jedisDel(BeefLibrary.getInstance(), KEY_PREFIX.concat(player.getUniqueId().toString()));
-            JedisUtils.jedisDel(BeefLibrary.getInstance(), KEY_PREFIX.concat(player.getName()));
+            JedisUtils.jedisDel(BeefLibrary.getInstance(), player.getUniqueId().toString());
+            JedisUtils.jedisDel(BeefLibrary.getInstance(), player.getName());
+            JedisUtils.jedisRemoveFromSet(BeefLibrary.getInstance(), "playerNames", player.getName());
         }
     }
 }

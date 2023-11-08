@@ -2,6 +2,7 @@ package ru.whitebeef.beeflibrary.utils;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
+import org.bukkit.Location;
 
 public class ComponentUtils {
 
@@ -20,7 +21,6 @@ public class ComponentUtils {
                 break;
             }
         }
-
         return contains;
     }
 
