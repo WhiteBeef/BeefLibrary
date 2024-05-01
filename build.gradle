@@ -126,6 +126,7 @@ shadowJar {
     relocate("redis.clients.jedis", "ru.whitebeef.beeflibrary.libs.redis")
     relocate("org.json", "ru.whitebeef.beeflibrary.libs.json")
     relocate("org.apache.commons", "ru.whitebeef.beeflibrary.libs.apache")
+    relocate("me.clip.placeholderapi", "ru.whitebeef.beeflibrary.libs.placeholderapi")
     relocate("io.papermc.paper", "ru.whitebeef.beeflibrary.libs.paper") // enable to 1.19.4
     destinationDirectory.set(destinationDir)
     archiveFileName.set(jarName)
@@ -147,8 +148,8 @@ publishing {
     }
     repositories {
         maven {
-            name = "femboymc-repository" //  optional target repository name
-            url = "https://mvn.femboymc.lgbt/releases"
+            name = "whitebeef-repository"
+            url = "https://mvn.wbif.ru/releases"
             credentials {
                 username = mavenRepoUsername
                 password = mavenRepoPassword

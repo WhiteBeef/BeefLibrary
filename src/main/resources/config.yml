@@ -6,6 +6,7 @@ messages:
   player_not_found: "&cИгрок %player% не найден!"
   inventorygui_not_found: "Инвентарь %namespace% не найден!"
   success: "&aУспех!"
+  unsuccess: "&cНеудача!"
 redis:
   enable: false
   host: "127.0.0.1"

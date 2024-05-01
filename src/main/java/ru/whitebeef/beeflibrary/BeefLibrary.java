@@ -29,12 +29,7 @@ import ru.whitebeef.beeflibrary.placeholderapi.PAPIUtils;
 import ru.whitebeef.beeflibrary.plugin.BeefPlugin;
 import ru.whitebeef.beeflibrary.utils.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 public final class BeefLibrary extends BeefPlugin {
@@ -140,7 +135,7 @@ public final class BeefLibrary extends BeefPlugin {
         command.addSubCommand(AbstractCommand.builder("redisreconect", SimpleCommand.class)
                 .setOnCommand((sender, strings) -> {
                     new JedisUtils();
-                    MessageSender.sendMessageType(sender, this, "success");
+                    MessageSender.sendMessageType(sender, this, JedisUtils.isJedisEnabled() ? "success" : "unsuccess");
                 })
                 .build());
 

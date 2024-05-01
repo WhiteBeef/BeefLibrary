@@ -1,17 +1,14 @@
 package ru.whitebeef.beeflibrary.utils;
 
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.Plugin;
 import redis.clients.jedis.JedisPooled;
 import redis.clients.jedis.JedisPubSub;
 import ru.whitebeef.beeflibrary.BeefLibrary;
+import ru.whitebeef.beeflibrary.chat.MessageSender;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class JedisUtils {
 
@@ -37,8 +34,6 @@ public class JedisUtils {
         FileConfiguration config = BeefLibrary.getInstance().getConfig();
         if (config.getBoolean("redis.enable")) {
             jedis = new JedisPooled(config.getString("redis.host"), config.getInt("redis.port"), config.getString("redis.user"), config.getString("redis.password"));
-        }
-        if (config.getBoolean("redis.enable")) {
             jedisSubscribe = new JedisPooled(config.getString("redis.host"), config.getInt("redis.port"), config.getString("redis.user"), config.getString("redis.password"));
         }
     }
