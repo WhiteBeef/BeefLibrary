@@ -7,7 +7,7 @@ plugins {
 }
 
 group = 'ru.whitebeef'
-version = '2.2.4'
+version = '2.3.2'
 
 compileJava.options.encoding = 'UTF-8'
 
@@ -58,8 +58,8 @@ repositories {
         url = 'https://mvn.smashup.ru/releases'
     }
     maven {
-        name = 'femboymc-repository'
-        url = 'https://mvn.femboymc.lgbt/releases'
+        name = 'wbif-repository'
+        url = 'https://mvn.wbif.ru/releases'
     }
     maven {
         url "https://plugins.gradle.org/m2/"
@@ -71,12 +71,13 @@ dependencies {
     implementation 'me.clip:placeholderapi:2.11.1'
     implementation 'redis.clients:jedis:4.3.0'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
-    implementation 'io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT'
+    implementation 'io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT'
     implementation 'dev.folia:folia-api:1.19.4-R0.1-SNAPSHOT'
     implementation 'com.rylinaux:PlugMan:2.3.3'
     implementation 'de.tr7zw:item-nbt-api-plugin:2.11.3'
     implementation 'ru.leonidm:FastNBT:0.3.1-SNAPSHOT'
     implementation 'org.apache.commons:commons-pool2:2.11.1'
+    implementation 'net.kyori:adventure-api:4.5.0'
 }
 
 
@@ -148,7 +149,7 @@ publishing {
     }
     repositories {
         maven {
-            name = "whitebeef-repository"
+            name = "wbif-repository"
             url = "https://mvn.wbif.ru/releases"
             credentials {
                 username = mavenRepoUsername

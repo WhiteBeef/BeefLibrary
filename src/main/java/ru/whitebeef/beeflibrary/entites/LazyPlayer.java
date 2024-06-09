@@ -10,20 +10,20 @@ import java.util.UUID;
 public abstract class LazyPlayer extends LazyEntity {
 
 
-    public LazyPlayer(Plugin plugin, Player player, LazyEntityData data) {
-        super(plugin, player.getUniqueId(), data);
+    public LazyPlayer(Plugin plugin, long id, Player player, LazyEntityData data) {
+        super(plugin, id, player.getUniqueId(), data);
     }
 
-    public LazyPlayer(Plugin plugin, Player player) {
-        super(plugin, player.getUniqueId());
+    public LazyPlayer(Plugin plugin, long id, Player player) {
+        super(plugin, id, player.getUniqueId());
     }
 
-    public LazyPlayer(Plugin plugin, UUID uuid, LazyEntityData data) {
-        super(plugin, uuid, data);
+    public LazyPlayer(Plugin plugin, long id, UUID uuid, LazyEntityData data) {
+        super(plugin, id, uuid, data);
     }
 
-    public LazyPlayer(Plugin plugin, UUID uuid) {
-        super(plugin, uuid);
+    public LazyPlayer(Plugin plugin, long id, UUID uuid) {
+        super(plugin, id, uuid);
     }
 
     @Nullable

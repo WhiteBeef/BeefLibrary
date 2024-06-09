@@ -10,12 +10,8 @@ public class MathUtils {
         try {
             return Integer.parseInt(line);
         } catch (NumberFormatException e) {
-            try {
-                String[] arr = line.split("\\.\\.");
-                return random.nextInt(Integer.parseInt(arr[0]), Integer.parseInt(arr[1]) + 1);
-            } catch (NumberFormatException ignored) {
-                return null;
-            }
+            String[] arr = line.split("\\.\\.");
+            return random.nextInt(Integer.parseInt(arr[0]), Integer.parseInt(arr[1]) + 1);
         }
     }
 

@@ -1,5 +1,6 @@
 package ru.whitebeef.beeflibrary.database;
 
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
 import ru.whitebeef.beeflibrary.database.abstractions.Database;
@@ -35,20 +36,19 @@ public class LazyEntityDatabase extends Database {
              ResultSet rs = statement.executeQuery()) {
             if (rs.next()) {
                 try {
-                    lazyEntity = lazyEntityClass.getDeclaredConstructor(Plugin.class, UUID.class, lazyEntityDataClass)
-                            .newInstance(plugin, entityUuid, GsonUtils.parseJSON(rs.getString("data"), lazyEntityDataClass));
+                    lazyEntity = lazyEntityClass.getDeclaredConstructor(Plugin.class, long.class, UUID.class, lazyEntityDataClass)
+                            .newInstance(plugin, rs.getLong("id"), entityUuid, GsonUtils.parseJSON(rs.getString("data"), lazyEntityDataClass));
                 } catch (Exception e) {
-                    return null;
+                    throw new RuntimeException(e);
                 }
             }
-        } catch (SQLException ex) {
-            return null;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
         return lazyEntity;
     }
 
-    public synchronized boolean saveLazyEntity(LazyEntity lazyEntity) {
-        boolean saved = true;
+    public synchronized LazyEntity saveLazyEntity(LazyEntity lazyEntity) {
         String SQL = switch (getDialect()) {
             case SQLITE -> "INSERT INTO LazyEntities (uuid, data) VALUES (?,?) " +
                     "ON CONFLICT(uuid) DO UPDATE SET data = ?";
@@ -65,10 +65,9 @@ public class LazyEntityDatabase extends Database {
 
             statement.executeUpdate();
         } catch (SQLException ex) {
-            ex.printStackTrace();
-            saved = false;
+            throw new RuntimeException(ex);
         }
-        return saved;
+        return getLazyEntity(Bukkit.getPluginManager().getPlugin(lazyEntity.getPluginName()), lazyEntity.getEntityUuid());
     }
 
 }

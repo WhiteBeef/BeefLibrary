@@ -27,7 +27,13 @@ public class Table {
         if (columns.size() > 0) {
             Column lastColumn = columns.get(columns.size() - 1);
             for (Column column : columns) {
-                sql.append(column.name()).append(" ").append(column.type());
+                sql.append(column.getName()).append(" ").append(column.getType());
+                if (column.isAutoIncrement()) {
+                    sql.append(" ").append(switch (database.getDialect()) {
+                        case MYSQL -> "AUTO_INCREMENT";
+                        case SQLITE -> "AUTOINCREMENT";
+                    });
+                }
                 if (column != lastColumn) {
                     sql.append(",");
                 }

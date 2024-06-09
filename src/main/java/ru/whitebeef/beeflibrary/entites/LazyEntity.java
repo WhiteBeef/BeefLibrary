@@ -15,11 +15,7 @@ import ru.whitebeef.beeflibrary.utils.GsonUtils;
 import ru.whitebeef.beeflibrary.utils.JedisUtils;
 import ru.whitebeef.beeflibrary.utils.ScheduleUtils;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public abstract class LazyEntity {
@@ -36,7 +32,8 @@ public abstract class LazyEntity {
                                               @NotNull Class<? extends LazyEntityData> lazyEntityDataClass, String databasePath) {
         Database database = new LazyEntityDatabase(plugin, databasePath, lazyEntityClass, lazyEntityDataClass)
                 .addTable(new Table("LazyEntities")
-                        .addColumn(new Column("uuid", "VARCHAR(65) PRIMARY KEY"))
+                        .addColumn(new Column("id", "INTEGER PRIMARY KEY").autoIncrement(true))
+                        .addColumn(new Column("uuid", "VARCHAR(65) NOT NULL UNIQUE"))
                         .addColumn(new Column("data", "TEXT")));
         database.setup();
         registeredTypes.computeIfAbsent(plugin.getName(), k -> new HashMap<>()).put(lazyEntityClass, lazyEntityDataClass);
@@ -79,9 +76,7 @@ public abstract class LazyEntity {
 
     public static void saveAll() {
         for (var entry : toSave.entrySet()) {
-            Set<LazyEntity> unsaved = new HashSet<>(entry.getValue());
-            unsaved.removeIf(LazyEntity::save);
-            toSave.put(entry.getKey(), unsaved);
+            entry.getValue().forEach(LazyEntity::save);
         }
     }
 
@@ -173,30 +168,33 @@ public abstract class LazyEntity {
         }
 
         try {
-            lazyEntity = lazyEntityClass.getDeclaredConstructor(Plugin.class, UUID.class)
-                    .newInstance(plugin, entityUuid);
+            lazyEntity = lazyEntityClass.getDeclaredConstructor(Plugin.class, long.class, UUID.class)
+                    .newInstance(plugin, 0, entityUuid);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
+        lazyEntity = lazyEntity.save();
         addCache(lazyEntity);
-        lazyEntity.lazySave();
         return lazyEntity;
     }
 
 
     private final String pluginName;
+    private final long id;
     private final UUID entityUuid;
     private final LazyEntityData data;
 
-    public LazyEntity(Plugin plugin, UUID entityUuid, LazyEntityData data) {
+    public LazyEntity(Plugin plugin, long id, UUID entityUuid, LazyEntityData data) {
         this.pluginName = plugin.getName();
+        this.id = id;
         this.entityUuid = entityUuid;
         this.data = data;
     }
 
-    public LazyEntity(Plugin plugin, UUID entityUuid) {
+    public LazyEntity(Plugin plugin, long id, UUID entityUuid) {
         this.pluginName = plugin.getName();
+        this.id = id;
         this.entityUuid = entityUuid;
         this.data = getDefaultData();
     }
@@ -205,6 +203,10 @@ public abstract class LazyEntity {
 
     public String getPluginName() {
         return pluginName;
+    }
+
+    public long getId() {
+        return id;
     }
 
     public UUID getEntityUuid() {
@@ -220,7 +222,7 @@ public abstract class LazyEntity {
         toSave.computeIfAbsent(pluginName, k -> new HashSet<>()).add(this);
     }
 
-    public boolean save() {
+    public LazyEntity save() {
         String databaseName = registeredLazyDatabaseNames.getOrDefault(getPluginName(), new HashMap<>()).get(super.getClass());
         if (databaseName == null) {
             throw new RuntimeException("Unable to found LazyEntity database");
