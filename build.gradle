@@ -4,6 +4,7 @@ plugins {
     id "com.github.johnrengelman.shadow" version "8.1.1"
     id 'java-library'
     id 'maven-publish'
+    id "org.sonarqube" version "3.5.0.2730"
 }
 
 group = 'ru.whitebeef'
@@ -159,3 +160,12 @@ publishing {
     }
 }
 apply plugin: 'java-library'
+
+sonar {
+    properties {
+        property "sonar.projectKey", System.getenv("sonarqube_beeflibrary_key")
+        property "sonar.host.url", "https://sonarqube.wbif.ru"
+        property "sonar.qualitygate.wait", true
+        property "sonar.login", System.getenv("sonarqube_beeflibrary")
+    }
+}
