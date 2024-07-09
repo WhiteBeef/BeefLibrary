@@ -12,19 +12,10 @@ import ru.whitebeef.beeflibrary.utils.LoggerUtils;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.*;
 import java.net.JarURLConnection;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -50,7 +41,7 @@ public class AnnotationPreprocessor implements Listener {
             return;
         }
         FileConfiguration config = plugin.getConfig();
-        getAnnotatedElements(plugin.getClass().getPackageName(), plugin.getClass().getClassLoader(), Set.of(ConfigProperty.class)).stream().map(annotatedElement -> (Field) annotatedElement)
+        getAnnotatedElements(plugin.getClass().getPackageName(), plugin.getClass().getClassLoader(), Set.of(ConfigProperty.class)).stream().map(Field.class::cast)
                 .forEach(field -> {
                     try {
                         if (Bukkit.getPluginManager().isPluginEnabled("PlugmanX")) {
@@ -113,9 +104,6 @@ public class AnnotationPreprocessor implements Listener {
                     JarEntry jarEntry = jarEntryEnumeration.nextElement();
                     String absoluteFileName = jarEntry.getName();
                     if (absoluteFileName.endsWith(".class")) {
-                        if (absoluteFileName.startsWith("/")) {
-                            absoluteFileName.substring(1);
-                        }
                         if (absoluteFileName.startsWith("WEB-INF/classes/")) {
                             absoluteFileName = absoluteFileName
                                     .substring(16);
@@ -141,7 +129,7 @@ public class AnnotationPreprocessor implements Listener {
                                         if (!clazz.isInterface() && !clazz.isAnnotation()) {
                                             result.add(clazz);
                                         }
-                                    } catch (Throwable e) {
+                                    } catch (Exception e) {
                                         LoggerUtils.debug(BeefLibrary.getInstance(), e.getMessage());
                                     }
                                 }
@@ -157,14 +145,11 @@ public class AnnotationPreprocessor implements Listener {
     }
 
     private static String fixClassName(String fileName) {
-        if (fileName.endsWith(".class")) {
-            // remove extension (".class".length() == 6)
-            String nameWithoutExtension = fileName.substring(0,
-                    fileName.length() - 6);
-            // handle inner classes...
-            return nameWithoutExtension;
+        if (!fileName.endsWith(".class")) {
+            return null;
         }
-        return null;
+        return fileName.substring(0,
+                fileName.length() - 6);
     }
 
     private Collection<AnnotatedElement> getAnnotatedElements(String packageName, ClassLoader classLoader, Set<Class<? extends Annotation>> annotations) {
@@ -197,7 +182,7 @@ public class AnnotationPreprocessor implements Listener {
                 }
             }
             return foundElements;
-        } catch (Throwable exception) {
+        } catch (Exception exception) {
             return Collections.emptyList();
         }
     }

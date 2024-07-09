@@ -1,5 +1,6 @@
 package ru.whitebeef.beeflibrary.commands;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import it.unimi.dsi.fastutil.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -13,17 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
@@ -59,14 +50,14 @@ public abstract class AbstractCommand extends BukkitCommand {
     private Cooldown.Type cooldownType;
     private long cooldown;
 
-    public AbstractCommand(@NotNull String name, @Nullable String permission, @Nullable String description, @Nullable String usageMessage, boolean onlyForPlayers,
-                           BiConsumer<CommandSender, String[]> onCommand,
-                           BiFunction<CommandSender, String[], List<String>> onTabComplete,
-                           Map<String, AbstractCommand> subCommands,
-                           List<Alias> aliases, int minArgsCount) {
+    protected AbstractCommand(@NotNull String name, @Nullable String permission, @Nullable String description, @Nullable String usageMessage, boolean onlyForPlayers,
+                              BiConsumer<CommandSender, String[]> onCommand,
+                              BiFunction<CommandSender, String[], List<String>> onTabComplete,
+                              Map<String, AbstractCommand> subCommands,
+                              List<Alias> aliases, int minArgsCount) {
         super(name, Objects.requireNonNullElseGet(description, String::new),
                 Objects.requireNonNullElseGet(usageMessage, String::new),
-                aliases.stream().map(Alias::getName).collect(Collectors.toList()));
+                aliases.stream().map(Alias::getName).toList());
         setPermission(Objects.requireNonNullElseGet(permission, String::new));
         this.name = name.toLowerCase();
         this.onCommand = onCommand;
@@ -77,6 +68,7 @@ public abstract class AbstractCommand extends BukkitCommand {
         this.minArgsCount = minArgsCount;
     }
 
+    @CanIgnoreReturnValue
     public final AbstractCommand addSubCommand(AbstractCommand abstractCommand) {
         subCommands.put(abstractCommand.getName(), abstractCommand);
         for (Alias alias : abstractCommand.getCustomAliases()) {
@@ -89,6 +81,7 @@ public abstract class AbstractCommand extends BukkitCommand {
         return subCommands.values();
     }
 
+    @Override
     public final String getName() {
         return name;
     }
@@ -130,6 +123,10 @@ public abstract class AbstractCommand extends BukkitCommand {
     }
 
     protected List<String> onTabComplete(CommandSender sender, String[] args) {
+        return Collections.emptyList();
+    }
+
+    protected List<String> onTabComplete() {
         return Collections.emptyList();
     }
 
@@ -215,7 +212,7 @@ public abstract class AbstractCommand extends BukkitCommand {
                 }
             }
         }
-        return retList;//.stream().filter(str -> StringUtils.startsWithIgnoreCase(str, args[args.length - 1])).toList();
+        return retList;
     }
 
     @Override
@@ -376,7 +373,7 @@ public abstract class AbstractCommand extends BukkitCommand {
                 command.setCooldown(cooldownType, cooldown, cooldownSkipPermission); // Костыль, чтобы не переписывать все остальные плагины
                 return command;
             } catch (Exception e) {
-                throw new RuntimeException();
+                throw new RuntimeException(e);
             }
         }
     }
