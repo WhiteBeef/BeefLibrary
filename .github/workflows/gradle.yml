@@ -1,0 +1,30 @@
+name: SimpleCI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+
+    runs-on: gradle:7.6-jdk17-alpine
+    permissions:
+      contents: read
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build project
+      run: ./gradlew build
+
+
+  sonar-check:
+
+    runs-on: gradle:7.6-jdk17-alpine
+    permissions:
+      contents: read
+    steps:
+    - uses: actions/checkout@v4
+    - name: SonarCheck
+      run: ./gradlew sonar
